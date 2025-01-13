@@ -12,7 +12,7 @@ client.on(Events.ClientReady, async () => {
 });
 
 // Conectar cliente app de discord
-client.login('MTMwNTQ4OTkwNjAwODg1NDU3OA.GJz5cb.hHy1kF2hG1n-YbfLvT0IPwTWowAxNU_JMCH5yU');
+client.login('');
 client.on(Events.MessageCreate, message => {
     if (message.content === '!hola') {
         message.reply('hola');
