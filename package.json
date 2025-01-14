@@ -1,0 +1,25 @@
+{
+  "name": "botdiscord",
+  "version": "1.0.0",
+  "description": "bot de discord durito",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LostSleepy/cxctxsjxckbot.git"
+  },
+  "author": "cxcti",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LostSleepy/cxctxsjxckbot/issues"
+  },
+  "homepage": "https://github.com/LostSleepy/cxctxsjxckbot#readme",
+  "dependencies": {
+    "discord.js": "^14.17.3",
+    "dotenv": "^16.4.7",
+    "node-fetch": "^3.3.2"
+  }
+}
