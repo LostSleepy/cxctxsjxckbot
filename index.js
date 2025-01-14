@@ -61,6 +61,36 @@ client.on(Events.MessageCreate, (message) => {
             case "bf":
                 handleBfCommand(message);
                 break;
+                case "ping":
+                    const latency = Date.now() - message.createdTimestamp;
+                    message.reply(`Pong! Latencia: ${latency}ms`);
+                    break;
+                case "ban":
+                    if (!message.member.permissions.has("BAN_MEMBERS")) {
+                        message.reply("No tienes permisos para banear miembros.");
+                    } else {
+                        const userToBan = message.mentions.users.first();
+                        if (!userToBan) {
+                            message.reply("Por favor menciona a un usuario para banear.");
+                        } else {
+                            const memberToBan = message.guild.members.cache.get(userToBan.id);
+                            if (memberToBan) {
+                                memberToBan.ban()
+                                    .then(() => message.reply(`${userToBan.tag} ha sido baneado.`))
+                                    .catch(error => {
+                                        console.error("Error al banear al usuario:", error);
+                                        message.reply("Hubo un error al intentar banear al usuario.");
+                                    });
+                            } else {
+                                message.reply("Ese usuario no está en el servidor.");
+                            }
+                        }
+                    }
+                    break;
+                case "roll":
+                    const rollResult = Math.floor(Math.random() * 6) + 1;
+                    message.reply(`Has sacado un ${rollResult}`);
+                    break;
             default:
                 message.reply("Comando no reconocido.");
         }
