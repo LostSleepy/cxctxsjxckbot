@@ -24,9 +24,6 @@ Desde juegos hasta respuestas graciosas, **cxctxsjxckbot** tiene un toque único
 📝 **`!ping`**  
 Respuesta rápida para saber si el bot está online. Pruébalo y verás cómo responde con algo épico. ⚡
 
-💬 **`!say [mensaje]`**  
-Haz que el bot repita lo que tú quieras. ¡Tú mandas! 🗣️
-
 🔨 **`!ban [usuario]`**  
 ¡Cuando alguien se porta mal, el bot puede ayudar a banearlo del servidor! 🚫
 
