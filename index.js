@@ -192,8 +192,6 @@ async function handleBfCommand(message) {
             message.reply('No puedes usar el black flash contra ti mismo.');
         } else {
             const now = new Date();
-            const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-
             // Seleccionar un GIF aleatorio de la lista
             const randomGif = gifUrls[Math.floor(Math.random() * gifUrls.length)];
 
