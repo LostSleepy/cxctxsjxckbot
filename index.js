@@ -22,6 +22,7 @@ import dotenv from "dotenv";
 dotenv.config();
 client.login(process.env.BOT_TOKEN);
 
+// Manejar mensajes creados
 client.on(Events.MessageCreate, (message) => {
     if (message.content.startsWith("!")) {
         const args = message.content.slice(1).split(" ");
@@ -40,7 +41,7 @@ client.on(Events.MessageCreate, (message) => {
                 message.reply("Dvix es el goat <:emocion1:1177337151059406860>");
                 break;
             case "bdayc":
-               handlebdayccommand(message);
+                handlebdayccommand(message);
                 break;
             case "rangif":
                 handleRangifCommand(message, args);
@@ -66,11 +67,11 @@ client.on(Events.MessageCreate, (message) => {
     }
 });
 
-
+// Manejar comando bdayc
 async function handlebdayccommand(message) {
     const today = new Date();
     const currentYear = today.getFullYear();
-    const birthday = new Date(currentYear, 8, 4); // 8 is September (0-indexed)
+    const birthday = new Date(currentYear, 8, 4); // 8 es septiembre (0-indexado)
 
     if (today > birthday) {
         birthday.setFullYear(currentYear + 1);
@@ -82,7 +83,7 @@ async function handlebdayccommand(message) {
     message.reply(`Mi creador cumple años el 4 de septiembre. Faltan ${diffDays} días. Es decir <t:1756936800:R> `);
 }
 
-
+// URLs de GIFs para el comando de
 const gifUrls = [
     'https://media1.tenor.com/m/tw9sVj7rctkAAAAd/spongebob-spongebob-domain-expansion.gif',
     'https://media1.tenor.com/m/MuMLDWrW95gAAAAd/gojo-domain-expansion.gif',
@@ -93,10 +94,11 @@ const gifUrls = [
     // Añade más URLs de GIFs aquí
 ];
 
+// Manejar comando de
 async function handleDeCommand(message, args) {
     const mentionedUser = message.mentions.users.first();
     
-    // Verificar si el usuario mencionando es el mismo que el autor del mensaje
+    // Verificar si el usuario mencionado es el mismo que el autor del mensaje
     if (!mentionedUser) {
         return message.reply("Por favor menciona a un usuario.");
     }
@@ -138,6 +140,7 @@ async function handleDeCommand(message, args) {
     });
 }
 
+// Manejar comando rangif
 async function handleRangifCommand(message, args) {
     const searchTerm = args.join(" ");
 
@@ -168,7 +171,7 @@ async function handleRangifCommand(message, args) {
     }
 }
 
-
+// Manejar comando bf
 async function handleBfCommand(message) {
     const args = message.mentions.users;
 
