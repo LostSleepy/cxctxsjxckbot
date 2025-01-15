@@ -191,7 +191,6 @@ async function handleBfCommand(message) {
         if (mentionedUser.id === message.author.id) {
             message.reply('No puedes usar el black flash contra ti mismo.');
         } else {
-            const now = new Date();
             // Seleccionar un GIF aleatorio de la lista
             const randomGif = gifUrls[Math.floor(Math.random() * gifUrls.length)];
 
