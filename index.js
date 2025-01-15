@@ -1,6 +1,6 @@
 // Archivo index.js
 import "dotenv/config";
-import { Client, GatewayIntentBits, Events, EmbedBuilder } from "discord.js";
+import { Client, GatewayIntentBits, Events, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } from "discord.js";
 import fetch from "node-fetch";
 
 // Crear nuevo cliente discord
@@ -42,18 +42,7 @@ client.on(Events.MessageCreate, (message) => {
                 break;
             case "birthdaycreator":
             case "bdayc":
-                const today = new Date();
-                const currentYear = today.getFullYear();
-                const birthday = new Date(currentYear, 8, 4); // 8 is September (0-indexed)
-
-                if (today > birthday) {
-                    birthday.setFullYear(currentYear + 1);
-                }
-
-                const diffTime = Math.abs(birthday - today);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                message.reply(`Mi creador cumple años el 4 de septiembre. Faltan ${diffDays} días. Es decir <t:1756936800:R> `);
+               handlebdayccommand(message);
                 break;
             case "rangif":
                 handleRangifCommand(message, args);
@@ -61,41 +50,90 @@ client.on(Events.MessageCreate, (message) => {
             case "bf":
                 handleBfCommand(message);
                 break;
-                case "ping":
-                    const latency = Date.now() - message.createdTimestamp;
-                    message.reply(`Pong! Latencia: ${latency}ms`);
-                    break;
-                case "ban":
-                    if (!message.member.permissions.has("BAN_MEMBERS")) {
-                        message.reply("No tienes permisos para banear miembros.");
-                    } else {
-                        const userToBan = message.mentions.users.first();
-                        if (!userToBan) {
-                            message.reply("Por favor menciona a un usuario para banear.");
-                        } else {
-                            const memberToBan = message.guild.members.cache.get(userToBan.id);
-                            if (memberToBan) {
-                                memberToBan.ban()
-                                    .then(() => message.reply(`${userToBan.tag} ha sido baneado.`))
-                                    .catch(error => {
-                                        console.error("Error al banear al usuario:", error);
-                                        message.reply("Hubo un error al intentar banear al usuario.");
-                                    });
-                            } else {
-                                message.reply("Ese usuario no está en el servidor.");
-                            }
-                        }
-                    }
-                    break;
-                case "roll":
-                    const rollResult = Math.floor(Math.random() * 6) + 1;
-                    message.reply(`Has sacado un ${rollResult}`);
-                    break;
-            default:
+            case "ping":
+                const latency = Date.now() - message.createdTimestamp;
+                message.reply(`Pong! Latencia: ${latency}ms`);
+                break;
+            case "roll":
+                const rollResult = Math.floor(Math.random() * 6) + 1;
+                message.reply(`Has sacado un ${rollResult}`);
+                break;
+            case "de":
+                handleDeCommand(message, args);
+                break;
                 message.reply("Comando no reconocido.");
         }
     }
 });
+
+const gifUrls = [
+    'https://media1.tenor.com/m/tw9sVj7rctkAAAAd/spongebob-spongebob-domain-expansion.gif',
+    'https://media1.tenor.com/m/MuMLDWrW95gAAAAd/gojo-domain-expansion.gif',
+    'https://media1.tenor.com/m/Cvbseddkre8AAAAd/megumi-fushiguro-megumi-domain-expansion.gif',
+    'https://media1.tenor.com/m/rzLycKqpA_EAAAAd/mahito-domain-expansion.gif',
+    'https://media1.tenor.com/m/EJW3gcpVvWgAAAAd/jogo-domain-expansion.gif',
+    'https://media1.tenor.com/m/G_HN1fYl61kAAAAd/domain-expansion-yuta.gif',
+    // Añade más URLs de GIFs aquí
+];
+async function handlebdayccommand(message) {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const birthday = new Date(currentYear, 8, 4); // 8 is September (0-indexed)
+
+    if (today > birthday) {
+        birthday.setFullYear(currentYear + 1);
+    }
+
+    const diffTime = Math.abs(birthday - today);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    message.reply(`Mi creador cumple años el 4 de septiembre. Faltan ${diffDays} días. Es decir <t:1756936800:R> `);
+}
+
+async function handleDeCommand(message, args) {
+    const mentionedUser = message.mentions.users.first();
+    
+    // Verificar si el usuario mencionando es el mismo que el autor del mensaje
+    if (!mentionedUser) {
+        return message.reply("Por favor menciona a un usuario.");
+    }
+    
+    if (mentionedUser.id === message.author.id) {
+        return message.reply("No puedes expandir tu dominio sobre ti mismo.");
+    }
+
+    const randomGif = gifUrls[Math.floor(Math.random() * gifUrls.length)];
+    const embed = new EmbedBuilder()
+        .setDescription(`${message.author} le ha expandido su dominio a ${mentionedUser}`)
+        .setImage(randomGif);
+
+    const button = new ButtonBuilder()
+        .setCustomId('respond_domain')
+        .setLabel('😨Responder al dominio😱')
+        .setStyle(ButtonStyle.Primary);
+
+    const row = new ActionRowBuilder().addComponents(button);
+
+    const sentMessage = await message.reply({ embeds: [embed], components: [row] });
+
+    const filter = i => i.customId === 'respond_domain' && i.user.id === mentionedUser.id;
+    const collector = sentMessage.createMessageComponentCollector({ filter, componentType: ComponentType.Button, time: 60000 });
+
+    collector.on('collect', async i => {
+        if (i.customId === 'respond_domain') {
+            const responseEmbed = new EmbedBuilder()
+                .setDescription(`¡ ${mentionedUser} ha respondido al dominio de ${message.author} expandiendo su propio dominio, generando así una guerra de dominios! 😮`)
+                .setImage('https://media1.tenor.com/m/SN-uCACOmacAAAAd/yuta-ryu.gif'); // Reemplaza 'URL_DEL_GIF' con la URL del GIF que desees
+            await i.update({ embeds: [responseEmbed], components: [] });
+        }
+    });
+
+    collector.on('end', collected => {
+        if (collected.size === 0) {
+            sentMessage.edit({ components: [] });
+        }
+    });
+}
 
 async function handleRangifCommand(message, args) {
     const searchTerm = args.join(" ");
