@@ -63,9 +63,17 @@ client.on(Events.MessageCreate, (message) => {
             case "help":
                 message.reply("Comandos disponibles: !hola, !adios, !perrix, !dvix, !bdayc, !rangif, !bf, !ping, !roll, !de, !help");
                 break;
+            case "mad":
+                handlemadcommand(message);
+                break;
         }
     }
 });
+// Manejar comando mad
+async function handlemadcommand(message) {
+    // Enviar un mensaje de respuesta
+    message.reply("¡Estoy loco! 😡")
+    };
 
 // Manejar comando bdayc
 async function handlebdayccommand(message) {
@@ -133,12 +141,27 @@ async function handleDeCommand(message, args) {
         }
     });
 
-    collector.on('end', collected => {
+    // Manejador único para 'end', con todo el flujo
+    collector.on('end', async (collected) => {
         if (collected.size === 0) {
             sentMessage.edit({ components: [] });
+        } else {
+            // Esperar 5 segundos antes de determinar el ganador
+            await new Promise(resolve => setTimeout(resolve, 5000)); // Ahora 5 segundos
+
+            // Determinar el ganador aleatoriamente
+            const winner = Math.random() < 0.5 ? message.author : mentionedUser;
+
+            const winnerEmbed = new EmbedBuilder()
+                .setDescription(`¡${winner} ha ganado la guerra de dominios! 🎉`)
+                .setImage('https://media1.tenor.com/m/mSen0EvAth4AAAAC/jujutsu-kaisen-yuji-itadori.gif'); // Reemplaza con el GIF que desees
+
+            await sentMessage.edit({ embeds: [winnerEmbed], components: [] });
         }
     });
 }
+
+
 
 // Manejar comando rangif
 async function handleRangifCommand(message, args) {
