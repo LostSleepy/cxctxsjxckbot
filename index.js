@@ -40,7 +40,6 @@ client.on(Events.MessageCreate, (message) => {
             case "dvix":
                 message.reply("Dvix es el goat <:emocion1:1177337151059406860>");
                 break;
-            case "birthdaycreator":
             case "bdayc":
                handlebdayccommand(message);
                 break;
@@ -146,13 +145,16 @@ async function handleRangifCommand(message, args) {
         const response = await fetch(
             `https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(
                 searchTerm
-            )}&key=AIzaSyCSafaBlxpHV9plawIq7YaAIFtby4-_E2s&limit=1`
+            )}&key=AIzaSyCSafaBlxpHV9plawIq7YaAIFtby4-_E2s&limit=5`  // Aumenta el límite a 10 resultados
         );
         const data = await response.json();
 
         if (data.results && data.results.length > 0) {
-            const gifUrl = data.results[0].url;
-            message.reply(gifUrl);
+            // Aquí seleccionamos un GIF aleatorio
+            const randomIndex = Math.floor(Math.random() * data.results.length);  // Genera un índice aleatorio
+            const randomGifUrl = data.results[randomIndex].url;  // Obtiene la URL del GIF aleatorio
+
+            message.reply(randomGifUrl);  // Envía el GIF aleatorio al canal
         } else {
             message.reply("No se encontraron GIFs para esa búsqueda.");
         }
@@ -161,6 +163,7 @@ async function handleRangifCommand(message, args) {
         message.reply("Hubo un error al buscar el GIF.");
     }
 }
+
 
 async function handleBfCommand(message) {
     const args = message.mentions.users;
