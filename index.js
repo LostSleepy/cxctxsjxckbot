@@ -26,7 +26,6 @@ client.on(Events.MessageCreate, (message) => {
     if (message.content.startsWith("!")) {
         const args = message.content.slice(1).split(" ");
         const command = args.shift().toLowerCase();
-
         switch (command) {
             case "hola":
                 message.reply("hola");
@@ -60,7 +59,9 @@ client.on(Events.MessageCreate, (message) => {
             case "de":
                 handleDeCommand(message, args);
                 break;
-                message.reply("Comando no reconocido.");
+            case "help":
+                message.reply("Comandos disponibles: !hola, !adios, !perrix, !dvix, !bdayc, !rangif, !bf, !ping, !roll, !de, !help");
+                break;
         }
     }
 });
@@ -167,20 +168,39 @@ async function handleRangifCommand(message, args) {
 
 async function handleBfCommand(message) {
     const args = message.mentions.users;
-    const gifUrl = 'https://media1.tenor.com/m/-nZnQBzGa7EAAAAd/jujutsu-kaisen-jujutsu-kaisen-season-2.gif';
 
+    // Lista de GIFs que puedes especificar
+    const gifUrls = [
+        'https://media1.tenor.com/m/-nZnQBzGa7EAAAAd/jujutsu-kaisen-jujutsu-kaisen-season-2.gif',
+        'https://media1.tenor.com/m/tIs0aEeP3AIAAAAd/black-flash-itadori.gif',
+        'https://media1.tenor.com/m/boeIVtEUfRAAAAAd/jjk-jjk-s2.gif',
+        'https://media1.tenor.com/m/EIlj3qUSKDUAAAAd/jjk-jujutsu-kaisen.gif',
+        'https://media1.tenor.com/m/FILnhw_rozUAAAAd/black-flash-jujutsu-kaisen.gif',
+        'https://media1.tenor.com/m/1-1s1sRLsHEAAAAd/jujutsu-kaisen-jjk.gif',
+        'https://media1.tenor.com/m/EpZRa2Ox2asAAAAd/jujutsu-kaisen-yuji-itadori.gif',
+        'https://media1.tenor.com/m/SA78kvgb6SIAAAAd/nanami-nanami-kento.gif'
+    ];
+
+    // Si no se menciona a ningún usuario, se responde con un GIF aleatorio de la lista
     if (args.size === 0) {
-        message.reply(gifUrl);
+        const randomGif = gifUrls[Math.floor(Math.random() * gifUrls.length)];
+        message.reply(randomGif);
     } else {
         const mentionedUser = args.first();
+
         if (mentionedUser.id === message.author.id) {
             message.reply('No puedes usar el black flash contra ti mismo.');
         } else {
             const now = new Date();
             const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+            // Seleccionar un GIF aleatorio de la lista
+            const randomGif = gifUrls[Math.floor(Math.random() * gifUrls.length)];
+
             const embed = new EmbedBuilder()
                 .setDescription(`${message.author} utilizó black flash contra ${mentionedUser}`)
-                .setImage(gifUrl);  // Establecer la imagen del GIF
+                .setImage(randomGif);  // Establecer la imagen del GIF aleatorio
+
             message.reply({ embeds: [embed] });
         }
     }
