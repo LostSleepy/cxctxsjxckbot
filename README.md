@@ -44,12 +44,12 @@ If you wish to contribute to the bot's development, you can:
 
 ## Contact
 
-X (formerly Twitter): cxctxs_jxck
+X (formerly Twitter): cxctxs_jxck <br>
 Instagram: cxctxs_jxck
 
 ## Acknowledgements
 
-Special thanks to Perrix3 for supporting most of the development.
+Special thanks to [Dvix](https://github.com/Dvix-dev) for supporting most of the development and offer tips.
 
 ## Credits
 
