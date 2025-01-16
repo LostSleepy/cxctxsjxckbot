@@ -6,8 +6,6 @@ Este es un bot de Discord en desarrollo. Actualmente se están implementando nue
 
 *   Bot de utilidad con comandos para moderación, juegos y entretenimiento.
 
-**Ejemplo:**
-
 > Sukuna's Vessel es un bot multifunción diseñado para mejorar la experiencia de los usuarios en servidores de Discord. Ofrece una variedad de comandos personalizados.
 
 ## Estado del desarrollo
@@ -21,7 +19,6 @@ Este bot se encuentra actualmente en fase de desarrollo. Esto significa que:
 Te agradecemos tu paciencia y te animamos a informar cualquier error o sugerencia que tengas.
 
 ## Funciones actuales
-**Ejemplo:**
 
 *   **`!ping`:** Responde con "Pong!".
 *   **`!help`:** Muestra información sobre el bot.
