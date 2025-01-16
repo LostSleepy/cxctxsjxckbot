@@ -70,10 +70,32 @@ client.on(Events.MessageCreate, (message) => {
     }
 });
 // Manejar comando mad
-async function handlemadcommand(message) {
-    // Enviar un mensaje de respuesta
-    message.reply("¡Estoy loco! 😡")
-    };
+    const madGifUrls = [
+        'https://media1.tenor.com/m/VBw7YA6Ih-UAAAAd/jujutsu-kaisen.gif',
+        'https://media1.tenor.com/m/mtXyLP-9ogQAAAAd/megumi-jujutsu-kaisen.gif',
+        'https://media1.tenor.com/m/733ySqHIP1oAAAAd/geto-suguru.gif',
+        'https://media1.tenor.com/m/H9SV_pOWLp8AAAAd/jujutsu-kaisen-jjk.gif',
+        'https://media1.tenor.com/m/6Cmm3rnd4QsAAAAd/jujutsu-kaisen-jujutsu-kaisen0.gif',   
+        // Añade más URLs de GIFs aquí
+    ];
+
+    async function handlemadcommand(message) {
+        const mentionedUser = message.mentions.users.first();
+        const randomGif = madGifUrls[Math.floor(Math.random() * madGifUrls.length)];
+        let description;
+
+        if (mentionedUser) {
+            description = `${message.author} se ha enfadado con ${mentionedUser}!`;
+        } else {
+            description = `${message.author} está enfadado!`;
+        }
+
+        const embed = new EmbedBuilder()
+            .setDescription(description)
+            .setImage(randomGif);
+
+        message.reply({ embeds: [embed] });
+    }
 
 // Manejar comando bdayc
 async function handlebdayccommand(message) {
