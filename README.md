@@ -22,8 +22,8 @@ We appreciate your patience and encourage you to report any bugs or suggestions 
 
 *   **`!ping`:** Responds with "Pong!".
 *   **`!help`:** Displays information about the bot.
-*   **`!de @user`:** Bans a user (moderators only). *(Note: "Baneaa" was corrected to "Bans")*
-*   **`!bf @user`:** Mutes a user (moderators only).
+*   **`!de @user`:** Expands the domain to another user.
+*   **`!bf @user`:** Throw a black flash to anyone.
 *   **`!bdayc`:** Displays the creator's birthday.
 *   **`!rangif <Search Term>`:** Displays a completely random GIF of the specified search term.
 
