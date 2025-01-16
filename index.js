@@ -185,8 +185,6 @@ async function handleDeCommand(message, args) {
     });
 }
 
-
-
 // Manejar comando rangif
 async function handleRangifCommand(message, args) {
     const searchTerm = args.join(" ");
