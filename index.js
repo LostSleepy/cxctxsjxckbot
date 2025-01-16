@@ -97,21 +97,25 @@ client.on(Events.MessageCreate, (message) => {
         message.reply({ embeds: [embed] });
     }
 
-// Manejar comando bdayc
-async function handlebdayccommand(message) {
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const birthday = new Date(currentYear, 8, 4); // 8 es septiembre (0-indexado)
-
-    if (today > birthday) {
-        birthday.setFullYear(currentYear + 1);
+    async function handlebdayccommand(message) {
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const birthday = new Date(currentYear, 8, 4); // 8 es septiembre (0-indexado)
+    
+        if (today > birthday) {
+            birthday.setFullYear(currentYear + 1);
+        }
+    
+        const diffTime = birthday.getTime() - today.getTime(); // Diferencia en milisegundos
+    
+        // Calcular días, horas, minutos y segundos
+        const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diffTime % (1000 * 60)) / 1000);
+    
+        message.reply(`Quedan exactamente ${days} días, ${hours} horas, ${minutes} minutos y ${seconds} segundos para el cumple de mi creador.`);
     }
-
-    const diffTime = Math.abs(birthday - today);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    message.reply(`Mi creador cumple años el 4 de septiembre. Faltan ${diffDays} días. Es decir <t:1756936800:R> `);
-}
 
 // URLs de GIFs para el comando de
 const gifUrls = [
@@ -124,15 +128,13 @@ const gifUrls = [
     // Añade más URLs de GIFs aquí
 ];
 
-// Manejar comando de
 async function handleDeCommand(message, args) {
     const mentionedUser = message.mentions.users.first();
-    
-    // Verificar si el usuario mencionado es el mismo que el autor del mensaje
+
     if (!mentionedUser) {
         return message.reply("Por favor menciona a un usuario.");
     }
-    
+
     if (mentionedUser.id === message.author.id) {
         return message.reply("No puedes expandir tu dominio sobre ti mismo.");
     }
@@ -144,7 +146,7 @@ async function handleDeCommand(message, args) {
 
     const button = new ButtonBuilder()
         .setCustomId('respond_domain')
-        .setLabel('😨Responder al dominio😱')
+        .setLabel('Responder al dominio')
         .setStyle(ButtonStyle.Primary);
 
     const row = new ActionRowBuilder().addComponents(button);
@@ -155,30 +157,30 @@ async function handleDeCommand(message, args) {
     const collector = sentMessage.createMessageComponentCollector({ filter, componentType: ComponentType.Button, time: 60000 });
 
     collector.on('collect', async i => {
-        if (i.customId === 'respond_domain') {
-            const responseEmbed = new EmbedBuilder()
-                .setDescription(`¡ ${mentionedUser} ha respondido al dominio de ${message.author} expandiendo su propio dominio, generando así una guerra de dominios! 😮`)
-                .setImage('https://media1.tenor.com/m/SN-uCACOmacAAAAd/yuta-ryu.gif'); // Reemplaza 'URL_DEL_GIF' con la URL del GIF que desees
-            await i.update({ embeds: [responseEmbed], components: [] });
-        }
+        const responseEmbed = new EmbedBuilder()
+            .setDescription(`¡${mentionedUser} ha respondido al dominio de ${message.author} expandiendo su propio dominio, generando así una guerra de dominios! `)
+            .setImage('https://media1.tenor.com/m/ibYNnEUpJoMAAAAd/jjk-jujutsu-kaisen.gif');
+
+        await i.update({ embeds: [responseEmbed], components: [] });
+
+        // Esperar 5 segundos ANTES de determinar y mostrar al ganador
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        // Determinar el ganador DESPUÉS de la espera
+        const winner = Math.random() < 0.5 ? message.author : mentionedUser;
+
+        const winnerEmbed = new EmbedBuilder()
+            .setDescription(`¡${winner} ha ganado la guerra de dominios! `)
+            .setImage('https://media1.tenor.com/m/E9Qe5VamQVYAAAAd/gojo.gif');
+
+        await sentMessage.edit({ embeds: [winnerEmbed], components: [] });
+
+        collector.stop(); // Detener el colector
     });
 
-    // Manejador único para 'end', con todo el flujo
-    collector.on('end', async (collected) => {
+    collector.on('end', collected => {
         if (collected.size === 0) {
             sentMessage.edit({ components: [] });
-        } else {
-            // Esperar 5 segundos antes de determinar el ganador
-            await new Promise(resolve => setTimeout(resolve, 5000)); // Ahora 5 segundos
-
-            // Determinar el ganador aleatoriamente
-            const winner = Math.random() < 0.5 ? message.author : mentionedUser;
-
-            const winnerEmbed = new EmbedBuilder()
-                .setDescription(`¡${winner} ha ganado la guerra de dominios! 🎉`)
-                .setImage('https://media1.tenor.com/m/mSen0EvAth4AAAAC/jujutsu-kaisen-yuji-itadori.gif'); // Reemplaza con el GIF que desees
-
-            await sentMessage.edit({ embeds: [winnerEmbed], components: [] });
         }
     });
 }
