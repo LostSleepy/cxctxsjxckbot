@@ -152,7 +152,7 @@ async function handleDeCommand(message, args) {
     const row = new ActionRowBuilder().addComponents(button);
 
     const sentMessage = await message.reply({ embeds: [embed], components: [row] });
-
+    
     const filter = i => i.customId === 'respond_domain' && i.user.id === mentionedUser.id;
     const collector = sentMessage.createMessageComponentCollector({ filter, componentType: ComponentType.Button, time: 60000 });
 
