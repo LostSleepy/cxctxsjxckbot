@@ -1,5 +1,4 @@
-# El Recipiente de Sukuna
-
+# Sukuna's Vessel
 Este es un bot de Discord en desarrollo. Actualmente se están implementando nuevas funciones y corrigiendo errores.
 
 ## Descripción
