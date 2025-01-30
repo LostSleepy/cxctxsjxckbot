@@ -1,16 +1,16 @@
 import discord
 from discord.ext import commands
-from comandos_gifs import bf, de, rangif
+from comandos_gifs import bf, de, rangif  # Importa las funciones desde el otro archivo
 from dotenv import load_dotenv
 import os
 
-# Cargar variables del archivo .env
+# Carga las variables de entorno
 load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')  # Carga el token desde .env
+TOKEN = os.getenv('DISCORD_TOKEN')
 
-# Configura el prefijo del bot y crea una instancia de `commands.Bot`
+# Configura el bot
 intents = discord.Intents.default()
-intents.message_content = True  # Habilita el acceso al contenido de los mensajes
+intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Evento: Cuando el bot está listo
@@ -18,27 +18,37 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 async def on_ready():
     print(f'Bot conectado como {bot.user.name}')
 
-# Comando básico: !hola
+# Comandos básicos
 @bot.command()
 async def hola(ctx):
     await ctx.send(f'¡Hola, {ctx.author.mention}!')
 
-# Comando básico: !adios
 @bot.command()
 async def adios(ctx):
     await ctx.send('¡Adiós! ¡Que tengas un buen día!')
 
-# Comando básico: !hora
 @bot.command()
 async def hora(ctx):
     from datetime import datetime
     ahora = datetime.now()
     await ctx.send(f'Son las {ahora.strftime("%H:%M")}.')
 
-# Comando básico: !repetir
 @bot.command()
 async def repetir(ctx, *, mensaje: str):
     await ctx.send(f'Has dicho: {mensaje}')
     
-# Ejecuta el bot con el token cargado
+# Comandos con funciones en otro archivo - USANDO ALIAS
+@bot.command(aliases=['de'])  # Alias 'de' para el comando 'de_command'
+async def de_command(ctx, usuario: discord.Member = None):
+    await de(ctx, usuario)
+
+@bot.command(aliases=['bf'])  # Alias 'bf' para el comando 'bf_command'
+async def bf_command(ctx, usuario: discord.Member = None):
+    await bf(ctx, usuario)
+
+@bot.command(name='rangif')  # Alias 'rangif' para el comando 'rangif_command'
+async def rangif_command(ctx, *, search_term: str):
+    await rangif(ctx, search_term)
+
+# Ejecuta el bot
 bot.run(TOKEN)
