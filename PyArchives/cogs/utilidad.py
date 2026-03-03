@@ -22,7 +22,7 @@ class Utilidad(commands.Cog):
 
         await message.edit(content=f"**¡Pong!** 🏓\n**Latencia API:** `{bot_latency}ms`\n**Respuesta Web:** `{api_latency}ms`")
 
-    @commands.command(name="8ball", aliases=['pregunta'])
+    @commands.command(name="8ball", aliases=['pregunta', 'ball'])
     async def eight_ball(self, ctx, *, pregunta: str):
         """Responde a una pregunta con el poder de la bola 8."""
         respuestas = [
@@ -38,6 +38,27 @@ class Utilidad(commands.Cog):
         embed.add_field(name="Respuesta:", value=f"**{respuesta}**", inline=False)
         embed.set_footer(text=f"Solicitado por {ctx.author.name}", icon_url=ctx.author.display_avatar.url)
         await ctx.send(embed=embed)
+
+    @commands.command()
+    async def aura(self, ctx):
+        """Calcula tu nivel de aura actual."""
+        puntos = random.randint(-1000, 5000)
+        if puntos > 2000:
+            msg = f"📈 ¡BRUTAL! Tienes **{puntos}** puntos de aura. Eres el jefe del server."
+        elif puntos > 0:
+            msg = f"✨ Tienes **{puntos}** puntos de aura. Nada mal."
+        else:
+            msg = f"📉 Malas noticias... tienes **{puntos}** de aura. Te falta calle."
+        await ctx.send(msg)
+
+    @commands.command()
+    async def elegir(self, ctx, *, opciones: str):
+        """Elige entre varias opciones separadas por comas."""
+        lista = opciones.split(",")
+        if len(lista) < 2:
+            return await ctx.send("Pon al menos dos opciones separadas por coma. Ej: `cx!elegir pizza, hamburguesa`.")
+        eleccion = random.choice(lista).strip()
+        await ctx.send(f"🤔 Después de mucho pensar, elijo: **{eleccion}**")
 
     @commands.command()
     async def avatar(self, ctx, miembro: discord.Member = None):
@@ -67,7 +88,7 @@ class Utilidad(commands.Cog):
 
     @commands.command(aliases=['azar', 'random_user'])
     async def aleatorio(self, ctx):
-        """Selecciona un usuario aleatorio del servidor"""
+        """Selecciona un usuario aleatorio del servidor."""
         usuarios = [m for m in ctx.guild.members if not m.bot]
         if not usuarios: return await ctx.send("No hay usuarios válidos.")
         elegido = random.choice(usuarios)
@@ -77,13 +98,13 @@ class Utilidad(commands.Cog):
 
     @commands.command()
     async def hola(self, ctx):
-        """Saluda con un GIF"""
+        """Saluda con un GIF."""
         async with ctx.typing():
             gif = await get_giphy_gif("anime hello")
             embed = discord.Embed(title=f"¡Hola, {ctx.author.name}!", color=discord.Color.purple())
             if gif: embed.set_image(url=gif)
             await ctx.send(embed=embed)
-            
+
     @commands.command(name="cita")
     async def cita(self, ctx, m1_id: str, m2_id: str):
         """Mueve a dos miembros al canal de citas."""
@@ -121,7 +142,7 @@ class Utilidad(commands.Cog):
         
     @commands.command()
     async def hora(self, ctx):
-        """Reloj mundial"""
+        """Reloj mundial."""
         tzs = {"🇪🇸 Madrid": "Europe/Madrid", "🇯🇵 Japón": "Asia/Tokyo", "🇺🇸 NY": "America/New_York"}
         embed = discord.Embed(title="⌚ Reloj Mundial", color=discord.Color.blue())
         for nombre, zona in tzs.items():
@@ -132,8 +153,9 @@ class Utilidad(commands.Cog):
     @commands.command()
     async def ship(self, ctx, usuario1: discord.Member, usuario2: discord.Member = None):
         """Mide la compatibilidad entre dos usuarios."""
-        usuario2 = usuario2 or usuario1
-        if usuario2 == usuario1: usuario1 = ctx.author
+        usuario2 = usuario2 or ctx.author
+        if usuario2 == usuario1 and usuario1 != ctx.author: 
+            usuario2 = ctx.author
 
         porcentaje = random.randint(0, 100)
         barra = "❤️" * (porcentaje // 10) + "🖤" * (10 - (porcentaje // 10))
@@ -146,20 +168,18 @@ class Utilidad(commands.Cog):
     async def teto(self, ctx):
         """Envía el video místico de Kasane Teto."""
         video_url = "https://cdn.discordapp.com/attachments/874124605533614090/1478366865201037353/pFw1Rzg.mp4?ex=69a823ef&is=69a6d26f&hm=b3570129c1ff22374ed5fff3f9a4a689128ea701408ad0a963b92d164f08ccff&"
-        
-        # Enviamos el mensaje con el video. Discord lo reproducirá automáticamente.
-        await ctx.send(f"**🥖 ¡Teto Territorial!**\n{video_url}")
+        await ctx.send(f"**🥖 ¡Teto, yay!**\n{video_url}")
 
     @commands.command(name="help")
     async def help_command(self, ctx):
         """Muestra la lista completa de comandos disponibles."""
         embed = discord.Embed(
-            title="🏮 Panel de Control - Sukuna's Vessel",
+            title="❤️ Panel de Control - Teto",
             description="El prefijo es `cx!`",
             color=discord.Color.gold()
         )
         embed.add_field(name="🎭 Jujutsu Kaisen", value="`de`, `bf`", inline=False)
-        embed.add_field(name="🔮 Utilidad", value="`ping`, `avatar`, `8ball`, `ship`, `userinfo`, `hora`, `hola`, `aleatorio`, `teto`", inline=False)
+        embed.add_field(name="🔮 Utilidad & Diversión", value="`ping`, `avatar`, `8ball`, `ship`, `userinfo`, `hora`, `hola`, `aleatorio`, `teto`, `aura`, `elegir`", inline=False)
         embed.add_field(name="🛡️ Moderación", value="`echo`, `cita`, `mlshr`, `ruleta`, `angelguard`", inline=False)
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         await ctx.send(embed=embed)
