@@ -1,55 +1,68 @@
-# Sukuna's Vessel
-Este es un bot de Discord en desarrollo. Actualmente se están implementando nuevas funciones y corrigiendo errores.
+# 🏮 Sukuna's Vessel
 
-## Descripción
+Un bot de Discord multifuncional inspirado en parte en Jujutsu Kaisen, diseñado para ofrecer herramientas de moderación, entretenimiento y un sistema inteligente de monitoreo de voz.
 
-*   Bot de utilidad con comandos para moderación, juegos y entretenimiento.
+## 🚀 Prefijo Actual: `cx!`
 
-> El Recipiente de Sukuna es un bot multifunción diseñado para mejorar la experiencia de los usuarios en servidores de Discord. Ofrece una variedad de comandos personalizados.
+---
 
-## Estado del desarrollo
+## 🛠️ Características Principales
 
-Este bot se encuentra actualmente en fase de desarrollo. Esto significa que:
+### 🔮 Utilidad y Diversión
 
-*   **Nuevas funciones en camino:** Se están añadiendo constantemente nuevas funciones y comandos.
-*   **Posibles errores:** Es posible que encuentres errores o comportamientos inesperados.
-*   **Cambios frecuentes:** La API y la funcionalidad del bot pueden cambiar con el tiempo.
+- **`cx!avatar [@usuario]`**: Muestra la foto de perfil de cualquier miembro en alta resolución.
+- **`cx!8ball [pregunta]`**: Consulta tu destino con la mística bola 8.
+- **`cx!ship @u1 [@u2]`**: Calcula la compatibilidad y el nivel de amor entre dos usuarios con barra de progreso.
+- **`cx!serverinfo`**: Despliega estadísticas técnicas detalladas del servidor (miembros, roles, creación).
+- **`cx!hora`**: Reloj mundial con horarios de Madrid, Nueva York y Japón.
+- **`cx!hola`**: Saludo personalizado con GIFs dinámicos (vía Giphy API).
 
-Agradecemos tu paciencia y te animamos a informar cualquier error o sugerencia que tengas.
+### 🛡️ Moderación y Staff
 
-## Funciones actuales
+- **`cx!mlshr [N o all]`**: Sistema de limpieza masiva de mensajes (Purge).
+- **`cx!echo #canal [mensaje]`**: Envía anuncios oficiales elegantes en formato Embed.
+- **`cx!ruleta`**: Un juego de azar arriesgado: 10 minutos de timeout para el perdedor.
+- **`cx!angelguard`**: Comando de emergencia para perdonar todos los silencios/timeouts activos.
 
-*   **`!ping`:** Responde con "Pong!".
-*   **`!help`:** Muestra información sobre el bot.
-*   **`!de @usuario`:** Expande el dominio a otro usuario.
-*   **`!bf @usuario`:** Lanza un Black flash a cualquier usuario.
-*   **`!bdayc`:** Muestra el cumpleaños del creador.
-*   **`!rangif <Término de búsqueda>`:** Muestra un GIF completamente aleatorio del término de búsqueda especificado.
+### 🎭 Jujutsu Kaisen (Movimientos Especiales)
 
-## Funciones en desarrollo
+- **`cx!de @usuario`**: Ejecuta una Expansión de Dominio sobre un objetivo.
+- **`cx!bf @usuario`**: Lanza un Destello Negro (Black Flash) cargado de energía maldita.
 
-*   Comandos para juegos interactivos.
-*   Sistema de niveles y recompensas.
-*   Integración con APIs externas.
-*   Comandos de música.
+---
 
-## Contribuciones
+## 🛰️ Sistemas Inteligentes (Monitoreo)
 
-Si deseas contribuir al desarrollo del bot, puedes:
+El bot incluye un **Cog de Monitoreo** que funciona automáticamente:
 
-*   Informar errores en la sección de "Issues" del repositorio.
-*   Sugerir nuevas funciones.
-*   Enviar *pull requests* con correcciones o nuevas funciones.
+- **Imán de Citas**: Si las IDs configuradas coinciden en canales de voz diferentes, el bot las succiona automáticamente al canal de citas de forma sincronizada.
+- **Comando `cx!cita`**: Permite al administrador mover a dos personas a un canal privado de forma discreta mediante mensajes directos (DM) al bot.
 
-## Contacto
+---
 
-X (anteriormente Twitter): cxctxs_jxck <br>
-Instagram: cxctxs_jxck
+## ⚙️ Instalación y Configuración
 
-## Agradecimientos
+1.  Clona el repositorio.
+2.  Configura tus variables en un archivo `.env`:
+    ```env
+    DISCORD_TOKEN=tu_token_aqui
+    GIPHY_API_KEY=tu_key_aqui
+    ```
+3.  Instala las dependencias: `pip install -r requirements.txt`
+4.  Ejecuta el bot: `python main.py`
 
-Un agradecimiento especial a [Dvix](https://github.com/Dvix-dev) por apoyar la mayor parte del desarrollo.
+---
 
-## Créditos
+## 📱 Contacto y Redes
 
-Sleepy.
+- **X (Twitter):** [@cxctxs_jxck](https://twitter.com/cxctxs_jxck)
+- **Instagram:** [@cxctxs_jxck](https://instagram.com/cxctxs_jxck)
+
+## 🤝 Agradecimientos
+
+- **Dvix** por el soporte técnico y los consejos durante el desarrollo inicial.
+- **Gemini** por la arquitectura de Cogs y la lógica avanzada de eventos.
+
+---
+
+**Desarrollado por:** `cxctxs_jxck` | **Créditos:** Sleepy.

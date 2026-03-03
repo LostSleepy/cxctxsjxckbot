@@ -1,56 +1,63 @@
-# Sukuna's Vessel
+# 🏮 Sukuna's Vessel
 
-This is a Discord bot under development. New features are currently being implemented and bugs are being fixed.
+A multi-functional Discord bot inspired by Jujutsu Kaisen, designed to provide moderation tools, entertainment, and an intelligent voice monitoring system.
 
-## Description
+## 🚀 Current Prefix: `cx!`
 
-*   Utility bot with commands for moderation, games, and entertainment.
+---
 
-> Sukuna's Vessel is a multi-function bot designed to enhance the user experience on Discord servers. It offers a variety of custom commands.
+## 🛠️ Main Features
 
-## Development Status
+### 🔮 Utility & Fun
+* **`cx!avatar [@user]`**: View any member's profile picture in high resolution.
+* **`cx!8ball [question]`**: Consult the mystical 8ball about your fate.
+* **`cx!ship @u1 [@u2]`**: Calculate compatibility and love levels between two users.
+* **`cx!serverinfo`**: Display detailed technical statistics of the server.
+* **`cx!hora`**: World clock featuring Madrid, New York, and Japan.
+* **`cx!hola`**: Personalized greeting with dynamic GIFs (Powered by Giphy).
 
-This bot is currently in the development phase. This means that:
+### 🛡️ Moderation & Staff
+* **`cx!mlshr [N or all]`**: Bulk message cleaning system (Clear).
+* **`cx!echo #channel [message]`**: Send official announcements in an elegant Embed format.
+* **`cx!ruleta`**: A game of chance with a twist: 10-minute timeout for the loser.
+* **`cx!angelguard`**: Emergency command to lift all active mutes/timeouts.
 
-*   **New features on the way:** New functions and commands are constantly being added.
-*   **Possible bugs:** You may encounter errors or unexpected behavior.
-*   **Frequent changes:** The bot's API and functionality may change over time.
+### 🎭 Jujutsu Kaisen (Special Moves)
+* **`cx!de @user`**: Perform a Domain Expansion on a target.
+* **`cx!bf @user`**: Unleash a Black Flash charged with cursed energy.
 
-We appreciate your patience and encourage you to report any bugs or suggestions you may have.
+---
 
-## Current Features
+## 🛰️ Intelligent Systems (Monitoring)
 
-*   **`!ping`:** Responds with "Pong!".
-*   **`!help`:** Displays information about the bot.
-*   **`!de @user`:** Expands the domain to another user.
-*   **`!bf @user`:** Throw a black flash to anyone.
-*   **`!bdayc`:** Displays the creator's birthday.
-*   **`!rangif <Search Term>`:** Displays a completely random GIF of the specified search term.
+The bot includes a **Monitoring Cog** that runs in the background:
+* **Date Magnet**: If configured IDs coexist in different voice channels, the bot automatically moves them to the "Citas" channel simultaneously.
+* **`cx!cita` Command**: Allows the admin to move two people to a private channel discreetly via Direct Messages to the bot.
 
-## Features in Development
+---
 
-*   Interactive game commands.
-*   Leveling and reward system.
-*   Integration with external APIs.
-*   Music commands.
+## ⚙️ Installation & Setup
 
-## Contributing
+1.  Clone the repository.
+2.  Set up your variables in a `.env` file:
+    ```env
+    DISCORD_TOKEN=your_token_here
+    GIPHY_API_KEY=your_key_here
+    ```
+3.  Install dependencies: `pip install -r requirements.txt`
+4.  Run using: `python main.py`
 
-If you wish to contribute to the bot's development, you can:
+---
 
-*   Report bugs in the "Issues" section of the repository.
-*   Suggest new features.
-*   Submit pull requests with fixes or new features.
+## 📱 Contact & Socials
 
-## Contact
+* **X (Twitter):** [@cxctxs_jxck](https://twitter.com/cxctxs_jxck)
+* **Instagram:** [@cxctxs_jxck](https://instagram.com/cxctxs_jxck)
 
-X (formerly Twitter): cxctxs_jxck <br>
-Instagram: cxctxs_jxck
+## 🤝 Acknowledgements
 
-## Acknowledgements
+* **Dvix** for technical support and advice during early development.
 
-Special thanks to [Dvix](https://github.com/Dvix-dev) for supporting most of the development and offer tips.
+---
 
-## Credits
-
-Sleepy.
+**Developed by:** `cxctxs_jxck` | **Credits:** Sleepy.
