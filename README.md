@@ -61,3 +61,5 @@ The bot includes a **Monitoring Cog** that runs in the background:
 ---
 
 **Developed by:** `cxctxs_jxck` | **Credits:** Sleepy.
+
+[Leer en Español 🇪🇸](README_ES.md)
