@@ -9,30 +9,34 @@ A multi-functional Discord bot inspired by Jujutsu Kaisen, designed to provide m
 ## 🛠️ Main Features
 
 ### 🔮 Utility & Fun
-* **`cx!avatar [@user]`**: View any member's profile picture in high resolution.
-* **`cx!8ball [question]`**: Consult the mystical 8ball about your fate.
-* **`cx!ship @u1 [@u2]`**: Calculate compatibility and love levels between two users.
-* **`cx!serverinfo`**: Display detailed technical statistics of the server.
-* **`cx!hora`**: World clock featuring Madrid, New York, and Japan.
-* **`cx!hola`**: Personalized greeting with dynamic GIFs (Powered by Giphy).
+
+- **`cx!avatar [@user]`**: View any member's profile picture in high resolution.
+- **`cx!8ball [question]`**: Consult the mystical 8ball about your fate.
+- **`cx!ship @u1 [@u2]`**: Calculate compatibility and love levels between two users.
+- **`cx!serverinfo`**: Display detailed technical statistics of the server.
+- **`cx!hora`**: World clock featuring Madrid, New York, and Japan.
+- **`cx!hola`**: Personalized greeting with dynamic GIFs (Powered by Giphy).
 
 ### 🛡️ Moderation & Staff
-* **`cx!mlshr [N or all]`**: Bulk message cleaning system (Clear).
-* **`cx!echo #channel [message]`**: Send official announcements in an elegant Embed format.
-* **`cx!ruleta`**: A game of chance with a twist: 10-minute timeout for the loser.
-* **`cx!angelguard`**: Emergency command to lift all active mutes/timeouts.
+
+- **`cx!mlshr [N or all]`**: Bulk message cleaning system (Clear).
+- **`cx!echo #channel [message]`**: Send official announcements in an elegant Embed format.
+- **`cx!ruleta`**: A game of chance with a twist: 10-minute timeout for the loser.
+- **`cx!angelguard`**: Emergency command to lift all active mutes/timeouts.
 
 ### 🎭 Jujutsu Kaisen (Special Moves)
-* **`cx!de @user`**: Perform a Domain Expansion on a target.
-* **`cx!bf @user`**: Unleash a Black Flash charged with cursed energy.
+
+- **`cx!de @user`**: Perform a Domain Expansion on a target.
+- **`cx!bf @user`**: Unleash a Black Flash charged with cursed energy.
 
 ---
 
 ## 🛰️ Intelligent Systems (Monitoring)
 
 The bot includes a **Monitoring Cog** that runs in the background:
-* **Date Magnet**: If configured IDs coexist in different voice channels, the bot automatically moves them to the "Citas" channel simultaneously.
-* **`cx!cita` Command**: Allows the admin to move two people to a private channel discreetly via Direct Messages to the bot.
+
+- **Date Magnet**: If configured IDs coexist in different voice channels, the bot automatically moves them to the "Citas" channel simultaneously.
+- **`cx!cita` Command**: Allows the admin to move two people to a private channel discreetly via Direct Messages to the bot.
 
 ---
 
@@ -51,15 +55,13 @@ The bot includes a **Monitoring Cog** that runs in the background:
 
 ## 📱 Contact & Socials
 
-* **X (Twitter):** [@cxctxs_jxck](https://twitter.com/cxctxs_jxck)
-* **Instagram:** [@cxctxs_jxck](https://instagram.com/cxctxs_jxck)
+- **X (Twitter):** [@cxctxs_jxck](https://twitter.com/cxctxs_jxck)
+- **Instagram:** [@cxctxs_jxck](https://instagram.com/cxctxs_jxck)
 
 ## 🤝 Acknowledgements
 
-* **Dvix** for technical support and advice during early development.
+- **Dvix** for technical support and advice during early development.
 
 ---
 
 **Developed by:** `cxctxs_jxck` | **Credits:** Sleepy.
-
-[Leer en Español 🇪🇸](README_ES.md)

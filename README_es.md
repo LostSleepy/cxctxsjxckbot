@@ -66,5 +66,3 @@ El bot incluye un **Cog de Monitoreo** que funciona automáticamente:
 ---
 
 **Desarrollado por:** `cxctxs_jxck` | **Créditos:** Sleepy.
-
-[English Version 🇬🇧/🇺🇸](Readme.md)
