@@ -141,6 +141,14 @@ class Utilidad(commands.Cog):
         embed.add_field(name="Pareja", value=f"{usuario1.mention} & {usuario2.mention}", inline=False)
         embed.add_field(name="Compatibilidad", value=f"{porcentaje}% \n{barra}", inline=False)
         await ctx.send(embed=embed)
+        
+    @commands.command(name="teto")
+    async def teto(self, ctx):
+        """Envía el video místico de Kasane Teto."""
+        video_url = "https://cdn.discordapp.com/attachments/874124605533614090/1478366865201037353/pFw1Rzg.mp4?ex=69a823ef&is=69a6d26f&hm=b3570129c1ff22374ed5fff3f9a4a689128ea701408ad0a963b92d164f08ccff&"
+        
+        # Enviamos el mensaje con el video. Discord lo reproducirá automáticamente.
+        await ctx.send(f"**🥖 ¡Teto Territorial!**\n{video_url}")
 
     @commands.command(name="help")
     async def help_command(self, ctx):
@@ -151,7 +159,7 @@ class Utilidad(commands.Cog):
             color=discord.Color.gold()
         )
         embed.add_field(name="🎭 Jujutsu Kaisen", value="`de`, `bf`", inline=False)
-        embed.add_field(name="🔮 Utilidad", value="`ping`, `avatar`, `8ball`, `ship`, `userinfo`, `hora`, `hola`, `aleatorio`", inline=False)
+        embed.add_field(name="🔮 Utilidad", value="`ping`, `avatar`, `8ball`, `ship`, `userinfo`, `hora`, `hola`, `aleatorio`, `teto`", inline=False)
         embed.add_field(name="🛡️ Moderación", value="`echo`, `cita`, `mlshr`, `ruleta`, `angelguard`", inline=False)
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         await ctx.send(embed=embed)
