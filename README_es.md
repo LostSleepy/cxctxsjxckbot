@@ -61,7 +61,6 @@ El bot incluye un **Cog de Monitoreo** que funciona automáticamente:
 ## 🤝 Agradecimientos
 
 - **Dvix** por el soporte técnico y los consejos durante el desarrollo inicial.
-- **Gemini** por la arquitectura de Cogs y la lógica avanzada de eventos.
 
 ---
 
