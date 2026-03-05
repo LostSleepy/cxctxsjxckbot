@@ -3,39 +3,51 @@ from discord.ext import commands
 import random
 from datetime import timedelta
 
+
 class Moderacion(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(aliases=['ruleta', 'mute_random'])
-    @commands.has_permissions(moderate_members=True)
+    @commands.command(aliases=["ruleta"])
     async def ruleta_rusa(self, ctx):
-        """Selecciona a alguien al azar y le aplica un timeout de 10 minutos."""
-        # Filtramos: No bots, no el autor del comando, y solo gente que el bot puede mutear
-        usuarios = [
-            m for m in ctx.guild.members 
-            if not m.bot and m.id != ctx.author.id and m.top_role < ctx.guild.me.top_role
-        ]
-        
-        if not usuarios:
-            return await ctx.send("❌ No hay usuarios válidos en mi rango de alcance para jugar.")
+        """Versión con diagnóstico para ver por qué no funciona."""
 
-        elegido = random.choice(usuarios)
-        tiempo = timedelta(minutes=10)
+        # LOG de inicio
+        print(f"DEBUG: Comando ejecutado por {ctx.author.name}")
+
+        if not ctx.author.voice:
+            return await ctx.send("❌ Error: No detecto que estés en un canal de voz.")
+
+        canal = ctx.author.voice.channel
+        # Forzamos la obtención de miembros si el caché está vacío
+        miembros = canal.members
+
+        print(
+            f"DEBUG: Canal detectado: {canal.name}. Miembros encontrados: {len(miembros)}"
+        )
+
+        # Filtro simplificado para pruebas
+        victimas = [m for m in miembros if not m.bot]
+
+        if not victimas:
+            return await ctx.send(
+                f"❌ No encontré víctimas humanas en `{canal.name}`. ¿Tienes los Privileged Intents activos?"
+            )
+
+        elegido = random.choice(victimas)
+        await ctx.send(f"🎲 La ruleta gira... apuntando a {elegido.mention}")
 
         try:
-            await elegido.timeout(tiempo, reason=f"Perdió en la ruleta rusa iniciada por {ctx.author}")
-            
-            embed = discord.Embed(
-                title="🎲 Ruleta Rusa de Silencio",
-                description=f"La suerte ha decidido que... {elegido.mention} sea silenciado.\n\n⏱️ **Duración:** 10 minutos.",
-                color=discord.Color.red()
+            await elegido.move_to(None)
+            await ctx.send(
+                f"💥 {elegido.display_name} ha sido expulsado de la llamada."
             )
-            embed.set_footer(text="¡Usa !angelguard para salvarlo!")
-            await ctx.send(embed=embed)
-            
+        except discord.Forbidden:
+            await ctx.send(
+                "❌ No tengo permisos (Mover Miembros) para desconectar a esa persona."
+            )
         except Exception as e:
-            await ctx.send(f"⚠️ Error al intentar silenciar a {elegido.name}: {e}")
+            await ctx.send(f"⚠️ Error inesperado: {e}")
 
     @commands.command()
     @commands.has_permissions(moderate_members=True)
@@ -47,7 +59,10 @@ class Moderacion(commands.Cog):
         for miembro in ctx.guild.members:
             if miembro.timed_out_until is not None:
                 try:
-                    await miembro.edit(timed_out_until=None, reason=f"Liberado por AngelGuard de {ctx.author}")
+                    await miembro.edit(
+                        timed_out_until=None,
+                        reason=f"Liberado por AngelGuard de {ctx.author}",
+                    )
                     count += 1
                 except:
                     pass
@@ -56,7 +71,7 @@ class Moderacion(commands.Cog):
             embed = discord.Embed(
                 title="✨ AngelGuard Activo",
                 description=f"Se ha restaurado el equilibrio.\nHe devuelto la voz a **{count}** usuario(s).",
-                color=discord.Color.gold()
+                color=discord.Color.gold(),
             )
             await status_msg.edit(content=None, embed=embed)
         else:
@@ -66,16 +81,18 @@ class Moderacion(commands.Cog):
     @commands.has_permissions(manage_messages=True)
     async def mlshr(self, ctx, amount: str):
         """Borra mensajes del chat."""
-        if amount.lower() == 'all':
+        if amount.lower() == "all":
             await ctx.channel.purge()
-            await ctx.send('✅ Chat purificado correctamente.', delete_after=5)
+            await ctx.send("✅ Chat purificado correctamente.", delete_after=5)
         else:
             try:
                 num = int(amount)
-                await ctx.channel.purge(limit=num)
-                await ctx.send(f'✅ Se han borrado {num} mensajes.', delete_after=5)
+                # Sumamos 1 para borrar también el mensaje del comando
+                await ctx.channel.purge(limit=num + 1)
+                await ctx.send(f"✅ Se han borrado {num} mensajes.", delete_after=5)
             except:
                 await ctx.send('❌ Indica un número o "all".', delete_after=5)
+
 
 async def setup(bot):
     await bot.add_cog(Moderacion(bot))
