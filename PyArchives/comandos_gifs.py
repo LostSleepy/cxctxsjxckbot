@@ -3,13 +3,8 @@ import random
 
 
 async def get_giphy_gif(query):
-    """
-    Sistema de Biblioteca Local.
-    Busca en las listas de abajo según la palabra clave.
-    """
     query = query.lower()
 
-    # --- CONFIGURACIÓN DE TU BIBLIOTECA ---
     biblioteca = {
         "hola": [
             "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/18/09/67F8rUksjWt5GloTV.gif",
@@ -40,7 +35,6 @@ async def get_giphy_gif(query):
         "emergencia": "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/a1/55/eMe2oFZQ3VtMfvGKEy.gif",
     }
 
-    # --- LÓGICA DE SELECCIÓN ---
     if "hello" in query or "hola" in query:
         lista = biblioteca["hola"]
     elif "black flash" in query:
@@ -53,12 +47,13 @@ async def get_giphy_gif(query):
     return random.choice(lista) if lista else biblioteca["emergencia"]
 
 
-# --- FUNCIONES QUE LLAMARÁ EL COG ---
-
-
 async def bf(ctx, usuario: discord.Member = None):
     if usuario is None:
         return await ctx.send("❌ Debes mencionar a alguien para darle un Black Flash.")
+    if usuario.id == ctx.bot.user.id:
+        return await ctx.send("❌ No me metas a mí en esto.")
+    if usuario.id == ctx.author.id:
+        return await ctx.send("❌ No puedes usarlo contra ti mismo.")
 
     async with ctx.typing():
         gif = await get_giphy_gif("black flash")
@@ -73,9 +68,11 @@ async def bf(ctx, usuario: discord.Member = None):
 
 async def de(ctx, usuario: discord.Member = None):
     if usuario is None:
-        return await ctx.send(
-            "❌ Debes mencionar a alguien para atraparlo en tu dominio."
-        )
+        return await ctx.send("❌ Debes mencionar a alguien para atraparlo en tu dominio.")
+    if usuario.id == ctx.bot.user.id:
+        return await ctx.send("❌ No me metas a mí en esto.")
+    if usuario.id == ctx.author.id:
+        return await ctx.send("❌ No puedes usarlo contra ti mismo.")
 
     async with ctx.typing():
         gif = await get_giphy_gif("domain expansion")

@@ -3,65 +3,68 @@ from discord.ext import commands
 from dotenv import load_dotenv
 import os
 import asyncio
+import logging
 from flask import Flask
 from threading import Thread
 
-# --- SERVIDOR WEB PARA EVITAR SUSPENSIÓN ---
-app = Flask('')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+log = logging.getLogger(__name__)
 
-@app.route('/')
+# --- SERVIDOR WEB ---
+app = Flask(__name__)
+
+
+@app.route("/")
 def home():
     return "Bot está vivo!"
 
-def run_web():
-    # Usamos el puerto que Koyeb nos asigne o el 8080 por defecto
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host='0.0.0.0', port=port)
 
 def keep_alive():
-    t = Thread(target=run_web)
+    port = int(os.environ.get("PORT", 8080))
+    t = Thread(target=lambda: app.run(host="0.0.0.0", port=port), daemon=True)
     t.start()
-# ------------------------------------------
 
-# Carga las variables de entorno
+
+# ---------------------
+
 load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
+TOKEN = os.getenv("DISCORD_TOKEN")
+if not TOKEN:
+    raise RuntimeError("DISCORD_TOKEN no está definido en las variables de entorno.")
 
-# CONFIGURACIÓN DE INTENTS
 intents = discord.Intents.default()
 intents.message_content = True
-intents.members = True  
+intents.members = True
 
 bot = commands.Bot(command_prefix="cx!", intents=intents)
-bot.remove_command('help')
+bot.remove_command("help")
+
 
 @bot.event
 async def on_ready():
-    print(f'✅ Bot encendido como {bot.user.name}')
-    print(f'Prefijo configurado: cx!')
+    log.info(f"Bot encendido como {bot.user} (ID: {bot.user.id})")
+
 
 async def load_extensions():
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    cogs_path = os.path.join(base_path, 'cogs')
-
+    cogs_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cogs")
     if not os.path.exists(cogs_path):
-        print(f"❌ ERROR: No se encontró la carpeta 'cogs' en: {cogs_path}")
+        log.error(f"No se encontró la carpeta 'cogs' en: {cogs_path}")
         return
-
     for filename in os.listdir(cogs_path):
-        if filename.endswith('.py'):
+        if filename.endswith(".py"):
             try:
-                await bot.load_extension(f'cogs.{filename[:-3]}')
-                print(f'📦 Extensión cargada: {filename}')
+                await bot.load_extension(f"cogs.{filename[:-3]}")
+                log.info(f"Extensión cargada: {filename}")
             except Exception as e:
-                print(f'⚠️ Error cargando {filename}: {e}')
+                log.warning(f"Error cargando {filename}: {e}")
+
 
 async def main():
     async with bot:
-        # Iniciamos el servidor web justo antes que el bot
-        keep_alive() 
+        keep_alive()
         await load_extensions()
         await bot.start(TOKEN)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

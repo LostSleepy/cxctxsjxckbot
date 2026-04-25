@@ -9,6 +9,7 @@ from datetime import datetime
 class Utilidad(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.start_time = time.time()  # Inicializado aquí para que uptime funcione
 
     @commands.command(name="ping")
     async def ping(self, ctx):
@@ -154,7 +155,7 @@ class Utilidad(commands.Cog):
                 try:
                     await miembro.move_to(canal_destino)
                     exitos.append(miembro.display_name)
-                except:
+                except Exception:
                     fallidos.append(f"{miembro.display_name} (Error)")
             else:
                 fallidos.append(f"{raw_id} (No en voz/encontrado)")
@@ -176,9 +177,7 @@ class Utilidad(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def ship(
-        self, ctx, usuario1: discord.Member, usuario2: discord.Member = None
-    ):
+    async def ship(self, ctx, usuario1: discord.Member, usuario2: discord.Member = None):
         """Mide la compatibilidad entre dos usuarios."""
         usuario2 = usuario2 or ctx.author
         if usuario2 == usuario1 and usuario1 != ctx.author:
@@ -193,21 +192,17 @@ class Utilidad(commands.Cog):
             inline=False,
         )
         embed.add_field(
-            name="Compatibilidad", value=f"{porcentaje}% \n{barra}", inline=False
+            name="Compatibilidad", value=f"{porcentaje}%\n{barra}", inline=False
         )
         await ctx.send(embed=embed)
 
     @commands.command(name="uptime")
     async def uptime(self, ctx):
         """Muestra cuánto tiempo lleva el bot activo."""
-        current_time = time.time()
-        difference = int(round(current_time - self.start_time))
-
-        # Calculamos días, horas, minutos y segundos
+        difference = int(round(time.time() - self.start_time))
         minutes, seconds = divmod(difference, 60)
         hours, minutes = divmod(minutes, 60)
         days, hours = divmod(hours, 24)
-
         await ctx.send(f"🕒 **Uptime:** `{days}d {hours}h {minutes}m {seconds}s`")
 
     @commands.command(name="teto")
