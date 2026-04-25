@@ -54,18 +54,6 @@ class Utilidad(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def aura(self, ctx):
-        """Calcula tu nivel de aura actual."""
-        puntos = random.randint(-1000, 5000)
-        if puntos > 2000:
-            msg = f"📈 ¡BRUTAL! Tienes **{puntos}** puntos de aura. Eres el jefe del server."
-        elif puntos > 0:
-            msg = f"✨ Tienes **{puntos}** puntos de aura. Nada mal."
-        else:
-            msg = f"📉 Malas noticias... tienes **{puntos}** de aura. Te falta calle."
-        await ctx.send(msg)
-
-    @commands.command()
     async def elegir(self, ctx, *, opciones: str):
         """Elige entre varias opciones separadas por comas."""
         lista = opciones.split(",")
