@@ -5,140 +5,95 @@ import pytz
 import time
 from datetime import datetime
 
+ADMIN_ID = 979869404110159912
+
 
 class Utilidad(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.start_time = time.time()  # Inicializado aquí para que uptime funcione
+        self.start_time = time.time()
 
     @commands.command(name="ping")
     async def ping(self, ctx):
-        """Muestra la latencia del bot y del sistema."""
-        start_time = time.time()
-        message = await ctx.send("🏓 Poneando...")
-        end_time = time.time()
-
-        bot_latency = round(self.bot.latency * 1000)
-        api_latency = round((end_time - start_time) * 1000)
-
-        await message.edit(
-            content=f"**¡Pong!** 🏓\n**Latencia API:** `{bot_latency}ms`\n**Respuesta Web:** `{api_latency}ms`"
-        )
+        start = time.time()
+        msg = await ctx.send("🏓 Poneando...")
+        await msg.edit(content=(
+            f"**¡Pong!** 🏓\n"
+            f"**Latencia API:** `{round(self.bot.latency * 1000)}ms`\n"
+            f"**Respuesta Web:** `{round((time.time() - start) * 1000)}ms`"
+        ))
 
     @commands.command(name="8ball", aliases=["pregunta", "ball"])
     async def eight_ball(self, ctx, *, pregunta: str):
-        """Responde a una pregunta con el poder de la bola 8."""
         respuestas = [
-            "Claramente sí. ✅",
-            "Es decididamente así. ✨",
-            "Sin ninguna duda. 💎",
-            "Pregunta en otro momento... ⏳",
-            "Mejor no te lo digo ahora. 🤐",
-            "Mis fuentes dicen que no. ❌",
-            "Las perspectivas no son muy buenas. 📉",
-            "Muy dudoso. 🤔",
-            "¡Por supuesto! 🚀",
-            "No cuentes con ello. 🛑",
+            "Claramente sí. ✅", "Es decididamente así. ✨", "Sin ninguna duda. 💎",
+            "Pregunta en otro momento... ⏳", "Mejor no te lo digo ahora. 🤐",
+            "Mis fuentes dicen que no. ❌", "Las perspectivas no son buenas. 📉",
+            "Muy dudoso. 🤔", "¡Por supuesto! 🚀", "No cuentes con ello. 🛑",
         ]
-        respuesta = random.choice(respuestas)
-
-        embed = discord.Embed(
-            title="🎱 La Bola 8 Mística", color=discord.Color.dark_blue()
-        )
+        embed = discord.Embed(title="🎱 La Bola 8 Mística", color=discord.Color.dark_blue())
         embed.add_field(name="Pregunta:", value=f"*{pregunta}*", inline=False)
-        embed.add_field(name="Respuesta:", value=f"**{respuesta}**", inline=False)
-        embed.set_footer(
-            text=f"Solicitado por {ctx.author.name}",
-            icon_url=ctx.author.display_avatar.url,
-        )
+        embed.add_field(name="Respuesta:", value=f"**{random.choice(respuestas)}**", inline=False)
+        embed.set_footer(text=f"Solicitado por {ctx.author.name}", icon_url=ctx.author.display_avatar.url)
         await ctx.send(embed=embed)
 
     @commands.command()
     async def elegir(self, ctx, *, opciones: str):
-        """Elige entre varias opciones separadas por comas."""
         lista = opciones.split(",")
         if len(lista) < 2:
-            return await ctx.send(
-                "Pon al menos dos opciones separadas por coma. Ej: `cx!elegir pizza, hamburguesa`."
-            )
-        eleccion = random.choice(lista).strip()
-        await ctx.send(f"🤔 Después de mucho pensar, elijo: **{eleccion}**")
+            return await ctx.send("Pon al menos dos opciones separadas por coma. Ej: `cx!elegir pizza, hamburguesa`.")
+        await ctx.send(f"🤔 Después de mucho pensar, elijo: **{random.choice(lista).strip()}**")
 
-    @commands.command()
+    @commands.command(name="avatar", aliases=["av"])
     async def avatar(self, ctx, miembro: discord.Member = None):
-        """Muestra la foto de perfil de un usuario."""
         miembro = miembro or ctx.author
         embed = discord.Embed(title=f"🖼️ Avatar de {miembro.name}", color=miembro.color)
         embed.set_image(url=miembro.display_avatar.url)
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=["user", "info"])
+    @commands.command(aliases=["user", "info", "u"])
     async def userinfo(self, ctx, miembro: discord.Member = None):
-        """Muestra info detallada del usuario."""
         miembro = miembro or ctx.author
         ts_creacion = int(miembro.created_at.timestamp())
         ts_union = int(miembro.joined_at.timestamp())
-        roles = [role.mention for role in miembro.roles if role.name != "@everyone"]
-        roles_str = " ".join(roles) if roles else "Sin roles"
-
-        embed = discord.Embed(
-            title=f"Información de {miembro.name}", color=miembro.color
-        )
+        roles = [r.mention for r in miembro.roles if r.name != "@everyone"]
+        embed = discord.Embed(title=f"Información de {miembro.name}", color=miembro.color)
         embed.set_thumbnail(url=miembro.display_avatar.url)
         embed.add_field(name="🆔 ID", value=f"`{miembro.id}`", inline=True)
         embed.add_field(name="🏷️ Apodo", value=miembro.display_name, inline=True)
-        embed.add_field(
-            name="🗓️ Cuenta creada",
-            value=f"<t:{ts_creacion}:D> (<t:{ts_creacion}:R>)",
-            inline=True,
-        )
-        embed.add_field(
-            name="📥 Se unió", value=f"<t:{ts_union}:D> (<t:{ts_union}:R>)", inline=True
-        )
-        embed.add_field(name="🎭 Roles", value=roles_str, inline=False)
+        embed.add_field(name="🗓️ Cuenta creada", value=f"<t:{ts_creacion}:D> (<t:{ts_creacion}:R>)", inline=True)
+        embed.add_field(name="📥 Se unió", value=f"<t:{ts_union}:D> (<t:{ts_union}:R>)", inline=True)
+        embed.add_field(name="🎭 Roles", value=" ".join(roles) if roles else "Sin roles", inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["azar", "random_user"])
     async def aleatorio(self, ctx):
-        """Selecciona un usuario aleatorio del servidor."""
         usuarios = [m for m in ctx.guild.members if not m.bot]
         if not usuarios:
             return await ctx.send("No hay usuarios válidos.")
         elegido = random.choice(usuarios)
-        embed = discord.Embed(
-            title="🎲 Usuario Seleccionado",
-            description=f"{elegido.mention}",
-            color=discord.Color.gold(),
-        )
+        embed = discord.Embed(title="🎲 Usuario Seleccionado", description=elegido.mention, color=discord.Color.gold())
         embed.set_thumbnail(url=elegido.display_avatar.url)
         await ctx.send(embed=embed)
 
     @commands.command(name="cita")
     async def cita(self, ctx, m1_id: str, m2_id: str):
-        """Mueve a dos miembros al canal de citas."""
-        TU_ID = 979869404110159912
-        ID_CANAL_VOZ = 1478182165966753843
-
-        if ctx.author.id != TU_ID:
+        if ctx.author.id != ADMIN_ID:
             return
-
-        canal_destino = self.bot.get_channel(ID_CANAL_VOZ)
+        canal_destino = self.bot.get_channel(1478182165966753843)
         if not canal_destino:
             return await ctx.send("❌ No encuentro el canal de voz.")
-
         exitos, fallidos = [], []
         for raw_id in [m1_id, m2_id]:
-            clean_id_str = "".join(filter(str.isdigit, raw_id))
-            if not clean_id_str:
+            clean = "".join(filter(str.isdigit, raw_id))
+            if not clean:
                 fallidos.append(f"ID inválida ({raw_id})")
                 continue
-
             miembro = None
             for guild in self.bot.guilds:
-                miembro = guild.get_member(int(clean_id_str))
+                miembro = guild.get_member(int(clean))
                 if miembro:
                     break
-
             if miembro and miembro.voice:
                 try:
                     await miembro.move_to(canal_destino)
@@ -146,18 +101,12 @@ class Utilidad(commands.Cog):
                 except Exception:
                     fallidos.append(f"{miembro.display_name} (Error)")
             else:
-                fallidos.append(f"{raw_id} (No en voz/encontrado)")
-
-        await ctx.send(f"✅ {', '.join(exitos)} | ❌ {', '.join(fallidos)}")
+                fallidos.append(f"{raw_id} (No en voz)")
+        await ctx.send(f"✅ {', '.join(exitos) or 'Ninguno'} | ❌ {', '.join(fallidos) or 'Ninguno'}")
 
     @commands.command()
     async def hora(self, ctx):
-        """Reloj mundial."""
-        tzs = {
-            "🇪🇸 Madrid": "Europe/Madrid",
-            "🇯🇵 Japón": "Asia/Tokyo",
-            "🇺🇸 NY": "America/New_York",
-        }
+        tzs = {"🇪🇸 Madrid": "Europe/Madrid", "🇯🇵 Japón": "Asia/Tokyo", "🇺🇸 NY": "America/New_York"}
         embed = discord.Embed(title="⌚ Reloj Mundial", color=discord.Color.blue())
         for nombre, zona in tzs.items():
             h = datetime.now(pytz.timezone(zona)).strftime("%H:%M")
@@ -166,59 +115,138 @@ class Utilidad(commands.Cog):
 
     @commands.command()
     async def ship(self, ctx, usuario1: discord.Member, usuario2: discord.Member = None):
-        """Mide la compatibilidad entre dos usuarios."""
         usuario2 = usuario2 or ctx.author
-        if usuario2 == usuario1 and usuario1 != ctx.author:
+        if usuario2 == usuario1:
             usuario2 = ctx.author
-
         porcentaje = random.randint(0, 100)
-        barra = "❤️" * (porcentaje // 10) + "🖤" * (10 - (porcentaje // 10))
+        barra = "❤️" * (porcentaje // 10) + "🖤" * (10 - porcentaje // 10)
         embed = discord.Embed(title="💘 Calculadora de Amor", color=discord.Color.red())
-        embed.add_field(
-            name="Pareja",
-            value=f"{usuario1.mention} & {usuario2.mention}",
-            inline=False,
-        )
-        embed.add_field(
-            name="Compatibilidad", value=f"{porcentaje}%\n{barra}", inline=False
-        )
+        embed.add_field(name="Pareja", value=f"{usuario1.mention} & {usuario2.mention}", inline=False)
+        embed.add_field(name="Compatibilidad", value=f"{porcentaje}%\n{barra}", inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(name="uptime")
     async def uptime(self, ctx):
-        """Muestra cuánto tiempo lleva el bot activo."""
-        difference = int(round(time.time() - self.start_time))
-        minutes, seconds = divmod(difference, 60)
-        hours, minutes = divmod(minutes, 60)
-        days, hours = divmod(hours, 24)
-        await ctx.send(f"🕒 **Uptime:** `{days}d {hours}h {minutes}m {seconds}s`")
+        diff = int(round(time.time() - self.start_time))
+        m, s = divmod(diff, 60)
+        h, m = divmod(m, 60)
+        d, h = divmod(h, 24)
+        await ctx.send(f"🕒 **Uptime:** `{d}d {h}h {m}m {s}s`")
 
     @commands.command(name="teto")
     async def teto(self, ctx):
-        """Envía el video místico de Kasane Teto."""
-        video_url = "https://cdn.discordapp.com/attachments/874124605533614090/1478366865201037353/pFw1Rzg.mp4?ex=69a823ef&is=69a6d26f&hm=b3570129c1ff22374ed5fff3f9a4a689128ea701408ad0a963b92d164f08ccff&"
-        await ctx.send(f"**🥖 ¡Teto, yay!**\n{video_url}")
+        await ctx.send("**🥖 ¡Teto, yay!**\nhttps://cdn.discordapp.com/attachments/874124605533614090/1478366865201037353/pFw1Rzg.mp4?ex=69a823ef&is=69a6d26f&hm=b3570129c1ff22374ed5fff3f9a4a689128ea701408ad0a963b92d164f08ccff&")
 
+    # --- REUNIÓN (solo admin) ---
+    @commands.command(name="re", aliases=["reunion", "raid"])
+    async def reunion(self, ctx, canal_destino: discord.VoiceChannel = None):
+        """[Admin] Mueve a todos los que están en voz al canal indicado."""
+        if ctx.author.id != ADMIN_ID:
+            return
+        if canal_destino is None:
+            return await ctx.send("❌ Indica el canal de voz destino. Ej: `cx!re #general`")
+
+        movidos = 0
+        fallidos = 0
+        for canal in ctx.guild.voice_channels:
+            if canal.id == canal_destino.id:
+                continue
+            for miembro in canal.members:
+                if miembro.bot:
+                    continue
+                try:
+                    await miembro.move_to(canal_destino)
+                    movidos += 1
+                except Exception:
+                    fallidos += 1
+
+        await ctx.send(
+            f"✅ Reunión completada en {canal_destino.mention}. "
+            f"**{movidos}** movidos" + (f", {fallidos} fallidos." if fallidos else ".")
+        )
+
+    # --- SILENCIAR TODOS (solo admin) ---
+    @commands.command(name="muteall")
+    async def mute_all(self, ctx):
+        """[Admin] Silencia el micro a todos en el canal de voz del admin."""
+        if ctx.author.id != ADMIN_ID:
+            return
+        if not ctx.author.voice:
+            return await ctx.send("❌ Entra en un canal de voz primero.")
+        count = 0
+        for miembro in ctx.author.voice.channel.members:
+            if miembro.bot or miembro.id == ADMIN_ID:
+                continue
+            try:
+                await miembro.edit(mute=True)
+                count += 1
+            except Exception:
+                pass
+        await ctx.send(f"🔇 {count} usuarios silenciados.")
+
+    @commands.command(name="unmuteall")
+    async def unmute_all(self, ctx):
+        """[Admin] Quita el silencio a todos en el canal de voz del admin."""
+        if ctx.author.id != ADMIN_ID:
+            return
+        if not ctx.author.voice:
+            return await ctx.send("❌ Entra en un canal de voz primero.")
+        count = 0
+        for miembro in ctx.author.voice.channel.members:
+            if miembro.bot:
+                continue
+            try:
+                await miembro.edit(mute=False)
+                count += 1
+            except Exception:
+                pass
+        await ctx.send(f"🔊 {count} usuarios dessilenciados.")
+
+    # --- HELP ---
     @commands.command(name="help")
     async def help_command(self, ctx):
-        """Muestra la lista completa de comandos disponibles."""
+        es_admin = ctx.author.id == ADMIN_ID
         embed = discord.Embed(
-            title="❤️ Panel de Control - Teto",
-            description="El prefijo es `cx!`",
-            color=discord.Color.gold(),
+            title="🥖 Teto — Panel de Comandos",
+            description="Prefijo: `cx!` — Todos los comandos listos para usar.",
+            color=discord.Color.from_rgb(255, 105, 180)
         )
-        embed.add_field(name="🎭 Jujutsu Kaisen", value="`de`, `bf`", inline=False)
+        embed.set_thumbnail(url=self.bot.user.display_avatar.url)
+
         embed.add_field(
-            name="🔮 Utilidad & Diversión",
-            value="`ping`, `avatar`, `8ball`, `ship`, `userinfo`, `hora`, `hola`, `aleatorio`, `teto`, `aura`, `elegir`, `uptime`",
-            inline=False,
+            name="🎭 Jujutsu Kaisen",
+            value="`de` `bf` — Expansión de Dominio y Black Flash (5% de duplicar aura)",
+            inline=False
+        )
+        embed.add_field(
+            name="✨ Sistema de Aura",
+            value="`aura` `da` `vc` — Consulta aura diaria, duelos (+50/-100) y voto chopped (3 votos = timeout)",
+            inline=False
+        )
+        embed.add_field(
+            name="🔮 Diversión",
+            value="`picha` `pp` `8ball` `ship` `aura` `elegir` `aleatorio` `hora` `teto`",
+            inline=False
+        )
+        embed.add_field(
+            name="🖼️ Utilidad",
+            value="`ping` `avatar` `av` `userinfo` `u` `uptime`",
+            inline=False
         )
         embed.add_field(
             name="🛡️ Moderación",
-            value="`echo`, `cita`, `mlshr`, `ruleta`, `angelguard`",
-            inline=False,
+            value="`mlshr` `ruleta` `angelguard` `nxc` `oa`",
+            inline=False
         )
-        embed.set_thumbnail(url=self.bot.user.display_avatar.url)
+
+        if es_admin:
+            embed.add_field(
+                name="👑 Admin (solo tú)",
+                value="`re` `reunion` — Reunir toda la voz\n`muteall` `unmuteall` — Silenciar/Dessilenciar canal\n`cita` — Mover dos usuarios al canal de citas\n`setaura` `resetaura` — Control manual de aura",
+                inline=False
+            )
+
+        embed.set_footer(text="🥖 Teto aprueba este bot.")
         await ctx.send(embed=embed)
 
 

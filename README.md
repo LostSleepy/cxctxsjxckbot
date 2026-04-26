@@ -1,55 +1,72 @@
-# 🏮 Sukuna's Vessel
+<div align="center">
 
-A multi-functional Discord bot inspired by Jujutsu Kaisen, designed to provide moderation tools, entertainment, and an intelligent voice monitoring system.
+# 🥖 Teto — Sukuna's Vessel
 
-## 🚀 Current Prefix: `cx!`
+> *"Baked with cursed energy. Deployed with questionable intent."*
 
----
+**A multi-functional Discord bot inspired by Jujutsu Kaisen and Kasane Teto.**
+Moderation tools, entertainment, intelligent voice monitoring, and a daily dose of chaos.
 
-## 🛠️ Main Features
-
-### 🔮 Utility & Fun
-
-- **`cx!avatar [@user]`**: View any member's profile picture in high resolution.
-- **`cx!8ball [question]`**: Consult the mystical 8ball about your fate.
-- **`cx!ship @u1 [@u2]`**: Calculate compatibility and love levels between two users.
-- **`cx!serverinfo`**: Display detailed technical statistics of the server.
-- **`cx!hora`**: World clock featuring Madrid, New York, and Japan.
-- **`cx!hola`**: Personalized greeting with dynamic GIFs (Powered by Giphy).
-
-### 🛡️ Moderation & Staff
-
-- **`cx!mlshr [N or all]`**: Bulk message cleaning system (Clear).
-- **`cx!echo #channel [message]`**: Send official announcements in an elegant Embed format.
-- **`cx!ruleta`**: A game of chance with a twist: 10-minute timeout for the loser.
-- **`cx!angelguard`**: Emergency command to lift all active mutes/timeouts.
-
-### 🎭 Jujutsu Kaisen (Special Moves)
-
-- **`cx!de @user`**: Perform a Domain Expansion on a target.
-- **`cx!bf @user`**: Unleash a Black Flash charged with cursed energy.
+[![Prefix](https://img.shields.io/badge/Prefix-cx!-ff69b4?style=for-the-badge&logo=discord&logoColor=white)](.)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](.)
+[![discord.py](https://img.shields.io/badge/discord.py-2.x-5865F2?style=for-the-badge&logo=discord&logoColor=white)](.)
 
 ---
 
-## 🛰️ Intelligent Systems (Monitoring)
+🇪🇸 [Versión en Español](README_es.md)
 
-The bot includes a **Monitoring Cog** that runs in the background:
-
-- **Date Magnet**: If configured IDs coexist in different voice channels, the bot automatically moves them to the "Citas" channel simultaneously.
-- **`cx!cita` Command**: Allows the admin to move two people to a private channel discreetly via Direct Messages to the bot.
+</div>
 
 ---
 
-## ⚙️ Installation & Setup
+## 🔮 Utility & Fun
 
-1.  Clone the repository.
-2.  Set up your variables in a `.env` file:
-    ```env
-    DISCORD_TOKEN=your_token_here
-    GIPHY_API_KEY=your_key_here
-    ```
-3.  Install dependencies: `pip install -r requirements.txt`
-4.  Run using: `python main.py`
+| Command | Description |
+|---|---|
+| `cx!avatar [@user]` | View any member's profile picture in high resolution |
+| `cx!8ball [question]` | Consult the mystical 8ball about your fate |
+| `cx!ship @u1 [@u2]` | Calculate compatibility between two users with a love bar |
+| `cx!aura [@user]` | Check your daily aura score — resets every 24h |
+| `cx!picha [@user]` | Scientific measurement. Results may vary. Daily seed. |
+| `cx!hora` | World clock — Madrid, New York, and Japan |
+| `cx!userinfo [@user]` | Detailed user stats: roles, join date, account age |
+| `cx!aleatorio` | Picks a random server member |
+| `cx!elegir [a, b, ...]` | Can't decide? Let Teto choose for you |
+| `cx!hola` | Personalized greeting with dynamic GIFs |
+| `cx!teto` | 🥖 |
+
+---
+
+## 🛡️ Moderation & Staff
+
+| Command | Description |
+|---|---|
+| `cx!mlshr [N \| all]` | Bulk message purge |
+| `cx!ruleta` | Random voice channel kick — someone's getting yeeted |
+| `cx!angelguard` | Emergency: lifts all active timeouts on the server |
+| `cx!uptime` | How long has Teto been awake |
+| `cx!ping` | Bot latency and API response time |
+
+---
+
+## 🎭 Jujutsu Kaisen — Special Moves
+
+| Command | Description |
+|---|---|
+| `cx!de @user` | Unleash a Domain Expansion on a target |
+| `cx!bf @user` | Hit someone with a Black Flash charged with cursed energy |
+
+> ⚠️ Cannot be used on yourself or on the bot.
+
+---
+
+## 🛰️ Intelligent Systems
+
+The bot runs background systems automatically:
+
+- **🧲 Date Magnet** — If two configured user IDs coexist in different voice channels, Teto moves them both to the Citas channel simultaneously.
+- **💀 Chopped Alert** — Every 6 hours, Teto picks a random member and publicly declares them chopped in the announcements channel. No one is safe.
+- **`cx!nxc`** — Admin toggle to enable/disable the voice monitoring system.
 
 ---
 
@@ -58,10 +75,13 @@ The bot includes a **Monitoring Cog** that runs in the background:
 - **X (Twitter):** [@cxctxs_jxck](https://twitter.com/cxctxs_jxck)
 - **Instagram:** [@cxctxs_jxck](https://instagram.com/cxctxs_jxck)
 
-## 🤝 Acknowledgements
-
-- **Dvix** for technical support and advice during early development.
 
 ---
 
-**Developed by:** `cxctxs_jxck` | **Credits:** Sleepy.
+<div align="center">
+
+**Developed by** `cxctxs_jxck` · **Credits:** Sleepy
+
+*Teto approves this bot. 🥖*
+
+</div>
