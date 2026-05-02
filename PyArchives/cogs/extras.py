@@ -43,21 +43,14 @@ MENSAJES_BF_RECORD = [
 ]
 
 CASTIGOS = [
-    "🔇 silenciado durante 5 minutos. Ni un sonido.",
-    "🙉 sin escuchar a nadie durante 10 minutos. Modo monje.",
-    "📵 expulsado de la llamada. Adiós.",
-    "🚶 fuera de la llamada y sin poder volver en 3 minutos.",
-    "🎤 con el micro cortado hasta que alguien se apiade.",
-    "🦆 obligado a hablar como un pato en la próxima intervención.",
-    "🍞 tiene que mandar una foto de pan en el chat. Sin excusas.",
-    "💀 declarado oficialmente chopped por el resto del día.",
-    "🤐 en modo lurker: solo puede escribir, nada de voz.",
-    "🎲 tiene que perder en la siguiente ruleta voluntariamente.",
-    "😶 sin poder usar emojis durante 15 minutos.",
-    "🙏 tiene que pedir perdón públicamente en el chat.",
-    "👑 coronado como el más chopped del server esta semana.",
-    "📢 tiene que escribir su mayor vergüenza en el chat.",
-    "🫡 tiene que obedecer el siguiente comando de cualquier miembro.",
+    {"tipo": "mute",     "duracion": 60,  "emoji": "🔇", "msg": "silenciado 1 minuto."},
+    {"tipo": "mute",     "duracion": 300, "emoji": "🔇", "msg": "silenciado 5 minutos. A pensar."},
+    {"tipo": "deaf",     "duracion": 60,  "emoji": "🙉", "msg": "sordo durante 1 minuto. Modo monje."},
+    {"tipo": "deaf",     "duracion": 300, "emoji": "🙉", "msg": "sordo durante 5 minutos."},
+    {"tipo": "kick",     "duracion": 0,   "emoji": "📵", "msg": "expulsado de la llamada. Adiós."},
+    {"tipo": "timeout",  "duracion": 60,  "emoji": "⏳", "msg": "en timeout 1 minuto."},
+    {"tipo": "timeout",  "duracion": 300, "emoji": "⏳", "msg": "en timeout 5 minutos."},
+    {"tipo": "mute_deaf","duracion": 120, "emoji": "💀", "msg": "sin micro y sin oír 2 minutos. Aislamiento total."},
 ]
 
 VERSUS_VICTORIA = [
@@ -356,13 +349,48 @@ class Extras(commands.Cog):
             return await ctx.send("❌ No puedes castigarte a ti mismo. O sí, pero qué triste.")
 
         castigo = random.choice(CASTIGOS)
-        embed = discord.Embed(
-            title="⚖️ Sentencia dictada",
-            description=f"{usuario.mention} queda {castigo}",
-            color=discord.Color.dark_red()
-        )
-        embed.set_footer(text=f"Juez: {ctx.author.display_name}")
-        await ctx.send(embed=embed)
+        tipo = castigo["tipo"]
+        dur = castigo["duracion"]
+        emoji = castigo["emoji"]
+        msg = castigo["msg"]
+
+        # Ejecutamos la acción real
+        try:
+            if tipo == "mute":
+                if not usuario.voice:
+                    return await ctx.send("❌ Esa persona no está en un canal de voz.")
+                await usuario.edit(mute=True)
+                await ctx.send(f"{emoji} {usuario.mention} queda {msg}")
+                if dur:
+                    await asyncio.sleep(dur)
+                    await usuario.edit(mute=False)
+            elif tipo == "deaf":
+                if not usuario.voice:
+                    return await ctx.send("❌ Esa persona no está en un canal de voz.")
+                await usuario.edit(deafen=True)
+                await ctx.send(f"{emoji} {usuario.mention} queda {msg}")
+                if dur:
+                    await asyncio.sleep(dur)
+                    await usuario.edit(deafen=False)
+            elif tipo == "mute_deaf":
+                if not usuario.voice:
+                    return await ctx.send("❌ Esa persona no está en un canal de voz.")
+                await usuario.edit(mute=True, deafen=True)
+                await ctx.send(f"{emoji} {usuario.mention} queda {msg}")
+                if dur:
+                    await asyncio.sleep(dur)
+                    await usuario.edit(mute=False, deafen=False)
+            elif tipo == "kick":
+                if not usuario.voice:
+                    return await ctx.send("❌ Esa persona no está en un canal de voz.")
+                await usuario.move_to(None)
+                await ctx.send(f"{emoji} {usuario.mention} queda {msg}")
+            elif tipo == "timeout":
+                from datetime import timedelta
+                await usuario.timeout(timedelta(seconds=dur), reason=f"Castigo de {ctx.author.display_name}")
+                await ctx.send(f"{emoji} {usuario.mention} queda {msg}")
+        except discord.Forbidden:
+            await ctx.send("❌ No tengo permisos para ejecutar ese castigo.")
 
     # --- VERSUS ---
     @commands.command(name="vs", aliases=["versus"])
@@ -463,6 +491,21 @@ class Extras(commands.Cog):
                     mention=ctx.author.mention, aura=nueva
                 )
                 await canal.send(msg)
+
+    # --- HOLA ---
+    @commands.command(name="hola", aliases=["hello", "hi"])
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def hola(self, ctx):
+        """Saludo con GIF aleatorio."""
+        await self._bypass_cooldown(ctx)
+        from comandos_gifs import get_giphy_gif
+        gif = await get_giphy_gif("hola")
+        embed = discord.Embed(
+            title=f"👋 ¡Hola, {ctx.author.display_name}!",
+            color=discord.Color.from_rgb(255, 105, 180)
+        )
+        embed.set_image(url=gif)
+        await ctx.send(embed=embed)
 
     # --- DE ---
     @commands.command(name="de", aliases=["dominio"])
