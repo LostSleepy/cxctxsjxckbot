@@ -215,27 +215,27 @@ class Utilidad(commands.Cog):
 
         embed.add_field(
             name="🎭 Jujutsu Kaisen",
-            value="`de` `bf` — Expansión de Dominio y Black Flash (5% de duplicar aura)",
+            value="`de` `bf` — Expansión de Dominio y Black Flash *(5% de duplicar aura)*",
             inline=False
         )
         embed.add_field(
             name="✨ Sistema de Aura",
-            value="`aura` `da` `vc` — Consulta aura diaria, duelos (+50/-100) y voto chopped (3 votos = timeout)",
+            value="`aura` — Consulta tu aura diaria\n`top` `ranking` — Top 10 del server\n`da` `dueloaura` — Duelo aleatorio (+50/-100)\n`robar` `rob` — Roba aura con 50% de éxito\n`vc` `votochopped` — 3 votos = timeout 5 min",
             inline=False
         )
         embed.add_field(
             name="🔮 Diversión",
-            value="`picha` `pp` `8ball` `ship` `aura` `elegir` `aleatorio` `hora` `teto`",
+            value="`picha` `pp` — Medición científica diaria\n`8ball` `ball` — La bola 8 mística\n`ship` — Compatibilidad entre dos usuarios\n`castigo` `cast` — Sentencia aleatoria\n`vs` `versus` — Combate entre dos usuarios\n`dado` `d` — Lanza un dado (d6 por defecto)\n`elegir` — Elige entre opciones\n`aleatorio` — Usuario aleatorio del server",
             inline=False
         )
         embed.add_field(
             name="🖼️ Utilidad",
-            value="`ping` `avatar` `av` `userinfo` `u` `uptime`",
+            value="`ping` — Latencia\n`avatar` `av` — Foto de perfil\n`userinfo` `u` — Info de usuario\n`hora` — Reloj mundial\n`uptime` — Tiempo activo\n`recordar` `rem` — Recordatorio *(ej: `cx!recordar 10m texto`)*\n`teto` — 🥖",
             inline=False
         )
         embed.add_field(
             name="🛡️ Moderación",
-            value="`mlshr` `ruleta` `angelguard` `nxc` `oa`",
+            value="`mlshr` — Purge de mensajes\n`ruleta` — Kick aleatorio de voz\n`angelguard` — Quita todos los timeouts\n`nxc` — Toggle imán de citas\n`oa` — Orden de alejamiento",
             inline=False
         )
 

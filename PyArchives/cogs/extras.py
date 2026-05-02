@@ -32,7 +32,7 @@ RAZONES_VICTORIA = [
     "Ganó porque Sukuna le debe un favor de una vida pasada.",
     "Ganó porque el universo no podía permitir lo contrario.",
     "Ganó porque tenía el Wi-Fi más rápido y eso suma aura.",
-    "Ganó porque Gojo le mandó apoyo espiritual desde el mas allá.",
+    "Ganó porque Gojo le mandó apoyo espiritual desde el más allá.",
     "Ganó por pura superioridad. No hay más explicación.",
 ]
 
@@ -42,7 +42,39 @@ MENSAJES_BF_RECORD = [
     "💥 **CONVERGENCIA DE ENERGÍA MALDITA** 💥\n{mention} lo ha hecho. Aura **x2** — ahora en **{aura} pts**. El server tiembla.",
 ]
 
+CASTIGOS = [
+    "🔇 silenciado durante 5 minutos. Ni un sonido.",
+    "🙉 sin escuchar a nadie durante 10 minutos. Modo monje.",
+    "📵 expulsado de la llamada. Adiós.",
+    "🚶 fuera de la llamada y sin poder volver en 3 minutos.",
+    "🎤 con el micro cortado hasta que alguien se apiade.",
+    "🦆 obligado a hablar como un pato en la próxima intervención.",
+    "🍞 tiene que mandar una foto de pan en el chat. Sin excusas.",
+    "💀 declarado oficialmente chopped por el resto del día.",
+    "🤐 en modo lurker: solo puede escribir, nada de voz.",
+    "🎲 tiene que perder en la siguiente ruleta voluntariamente.",
+    "😶 sin poder usar emojis durante 15 minutos.",
+    "🙏 tiene que pedir perdón públicamente en el chat.",
+    "👑 coronado como el más chopped del server esta semana.",
+    "📢 tiene que escribir su mayor vergüenza en el chat.",
+    "🫡 tiene que obedecer el siguiente comando de cualquier miembro.",
+]
+
+VERSUS_VICTORIA = [
+    "porque {perdedor} se quedó sin batería en el momento crítico.",
+    "porque {perdedor} no sabe ni ponerse los zapatos.",
+    "porque {perdedor} llegó tarde y ya había terminado todo.",
+    "porque el aura de {perdedor} estaba en negativo ese día.",
+    "porque {perdedor} se distrajo mirando el móvil.",
+    "porque Sukuna eligió bando y no fue el de {perdedor}.",
+    "porque {perdedor} intentó spamear y le falló el ping.",
+    "porque el universo tiene favoritos y {perdedor} no es uno.",
+    "porque {perdedor} confió demasiado en sus posibilidades.",
+    "porque simplemente no había color. Lo siento, {perdedor}.",
+]
+
 aura_lock = asyncio.Lock()
+recordatorios_activos = []
 
 
 # --- UTILS AURA ---
@@ -139,6 +171,42 @@ class Extras(commands.Cog):
         embed.set_footer(text="Se resetea cada 24h.")
         await ctx.send(embed=embed)
 
+    # --- TOP AURA ---
+    @commands.command(name="top", aliases=["ranking", "leaderboard"])
+    async def top_aura(self, ctx):
+        """Ranking de aura del server."""
+        await self._bypass_cooldown(ctx)
+        async with aura_lock:
+            data = cargar_aura()
+
+        hoy = int(time.time() // 86400)
+        ranking = []
+        for uid, entrada in data.items():
+            if entrada.get("dia") != hoy:
+                continue
+            miembro = ctx.guild.get_member(int(uid))
+            if miembro and not miembro.bot:
+                ranking.append((miembro.display_name, entrada["valor"]))
+
+        if not ranking:
+            return await ctx.send("📊 Nadie ha consultado su aura hoy todavía.")
+
+        ranking.sort(key=lambda x: x[1], reverse=True)
+        top = ranking[:10]
+
+        medallas = ["🥇", "🥈", "🥉"] + ["🔹"] * 7
+        lineas = []
+        for i, (nombre, puntos) in enumerate(top):
+            lineas.append(f"{medallas[i]} **{nombre}** — {puntos} pts")
+
+        embed = discord.Embed(
+            title="📊 Ranking de Aura — Top 10",
+            description="\n".join(lineas),
+            color=discord.Color.gold()
+        )
+        embed.set_footer(text="Solo usuarios que han consultado su aura hoy.")
+        await ctx.send(embed=embed)
+
     # --- PICHA ---
     @commands.command(name="picha", aliases=["pp"])
     @commands.cooldown(1, 30, commands.BucketType.user)
@@ -209,7 +277,7 @@ class Extras(commands.Cog):
     @commands.command(name="da", aliases=["dueloaura"])
     @commands.cooldown(1, 30, commands.BucketType.user)
     async def duelo_aura(self, ctx, rival: discord.Member = None):
-        """Duelo de aura. Ganador +50, perdedor -100."""
+        """Duelo de aura aleatorio. Ganador +50, perdedor -100."""
         await self._bypass_cooldown(ctx)
         if rival is None:
             return await ctx.send("❌ Menciona a tu rival.")
@@ -221,25 +289,154 @@ class Extras(commands.Cog):
         async with aura_lock:
             aura_autor = get_aura_usuario(self.aura_data, str(ctx.author.id))
             aura_rival = get_aura_usuario(self.aura_data, str(rival.id))
-            if aura_autor >= aura_rival:
+
+            if random.random() < 0.5:
                 ganador, perdedor = ctx.author, rival
                 aura_g, aura_p = aura_autor, aura_rival
             else:
                 ganador, perdedor = rival, ctx.author
                 aura_g, aura_p = aura_rival, aura_autor
+
             nueva_g = aura_g + 50
             nueva_p = aura_p - 100
             set_aura_usuario(self.aura_data, str(ganador.id), nueva_g)
             set_aura_usuario(self.aura_data, str(perdedor.id), nueva_p)
 
-        razon = random.choice(RAZONES_VICTORIA)
+        razon = random.choice(VERSUS_VICTORIA).format(perdedor=perdedor.display_name)
         embed = discord.Embed(title="⚔️ Duelo de Aura", color=discord.Color.gold())
         embed.add_field(name="🏆 Ganador", value=f"{ganador.mention} — **{nueva_g} pts** (+50)", inline=False)
         embed.add_field(name="💀 Perdedor", value=f"{perdedor.mention} — **{nueva_p} pts** (-100)", inline=False)
-        embed.add_field(name="📖 Lore", value=f"{ganador.mention} {razon}", inline=False)
+        embed.add_field(name="📖 Lore", value=f"{ganador.mention} ganó {razon}", inline=False)
         await ctx.send(embed=embed)
 
-    # --- BF (fusionado desde jujutsu) ---
+    # --- ROBO DE AURA ---
+    @commands.command(name="robar", aliases=["rob"])
+    @commands.cooldown(1, 60, commands.BucketType.user)
+    async def robar_aura(self, ctx, objetivo: discord.Member = None):
+        """Intenta robar aura. 50% de éxito, si fallas pierdes tú."""
+        await self._bypass_cooldown(ctx)
+        if objetivo is None:
+            return await ctx.send("❌ Menciona a quién quieres robar.")
+        if objetivo.bot:
+            return await ctx.send("❌ El bot no tiene aura robable.")
+        if objetivo.id == ctx.author.id:
+            return await ctx.send("❌ No puedes robarte a ti mismo.")
+
+        cantidad = random.randint(50, 300)
+
+        async with aura_lock:
+            aura_ladr = get_aura_usuario(self.aura_data, str(ctx.author.id))
+            aura_obj = get_aura_usuario(self.aura_data, str(objetivo.id))
+
+            if random.random() < 0.5:
+                # Éxito
+                set_aura_usuario(self.aura_data, str(ctx.author.id), aura_ladr + cantidad)
+                set_aura_usuario(self.aura_data, str(objetivo.id), aura_obj - cantidad)
+                await ctx.send(
+                    f"🥷 **ROBO EXITOSO.** {ctx.author.mention} le ha birlado **{cantidad} pts** de aura a {objetivo.mention}. Sin dejar rastro."
+                )
+            else:
+                # Fallo — pierdes tú
+                set_aura_usuario(self.aura_data, str(ctx.author.id), aura_ladr - cantidad)
+                await ctx.send(
+                    f"💀 **PILLADO.** {ctx.author.mention} intentó robarle a {objetivo.mention} y le salió mal. Pierde **{cantidad} pts** de aura."
+                )
+
+    # --- CASTIGO ---
+    @commands.command(name="castigo", aliases=["cast"])
+    @commands.cooldown(1, 30, commands.BucketType.user)
+    async def castigo(self, ctx, usuario: discord.Member = None):
+        """Sentencia a alguien con un castigo aleatorio."""
+        await self._bypass_cooldown(ctx)
+        if usuario is None:
+            return await ctx.send("❌ Menciona a alguien para castigar.")
+        if usuario.bot:
+            return await ctx.send("❌ El bot no acepta castigos.")
+        if usuario.id == ctx.author.id:
+            return await ctx.send("❌ No puedes castigarte a ti mismo. O sí, pero qué triste.")
+
+        castigo = random.choice(CASTIGOS)
+        embed = discord.Embed(
+            title="⚖️ Sentencia dictada",
+            description=f"{usuario.mention} queda {castigo}",
+            color=discord.Color.dark_red()
+        )
+        embed.set_footer(text=f"Juez: {ctx.author.display_name}")
+        await ctx.send(embed=embed)
+
+    # --- VERSUS ---
+    @commands.command(name="vs", aliases=["versus"])
+    @commands.cooldown(1, 20, commands.BucketType.user)
+    async def versus(self, ctx, u1: discord.Member = None, u2: discord.Member = None):
+        """Decide quién ganaría en un combate entre dos usuarios."""
+        await self._bypass_cooldown(ctx)
+        if u1 is None or u2 is None:
+            return await ctx.send("❌ Menciona a dos usuarios. Ej: `cx!vs @u1 @u2`")
+        if u1.id == u2.id:
+            return await ctx.send("❌ No puedes enfrentar a alguien consigo mismo.")
+
+        ganador, perdedor = random.sample([u1, u2], 2)
+        razon = random.choice(VERSUS_VICTORIA).format(perdedor=perdedor.display_name)
+
+        embed = discord.Embed(
+            title="🥊 VERSUS",
+            description=f"**{u1.display_name}** VS **{u2.display_name}**",
+            color=discord.Color.orange()
+        )
+        embed.add_field(name="🏆 Ganador", value=f"{ganador.mention}", inline=True)
+        embed.add_field(name="💀 Perdedor", value=f"{perdedor.mention}", inline=True)
+        embed.add_field(name="📖 Motivo", value=f"{ganador.mention} ganó {razon}", inline=False)
+        await ctx.send(embed=embed)
+
+    # --- DADO ---
+    @commands.command(name="dado", aliases=["dice", "d"])
+    async def dado(self, ctx, caras: int = 6):
+        """Lanza un dado. cx!dado [caras] — por defecto d6."""
+        await self._bypass_cooldown(ctx)
+        if caras < 2 or caras > 1000:
+            return await ctx.send("❌ El dado tiene que tener entre 2 y 1000 caras.")
+        resultado = random.randint(1, caras)
+        await ctx.send(f"🎲 **d{caras}** → `{resultado}`")
+
+    # --- RECORDAR ---
+    @commands.command(name="recordar", aliases=["reminder", "rem"])
+    async def recordar(self, ctx, tiempo: str = None, *, mensaje: str = None):
+        """Crea un recordatorio. Ej: cx!recordar 10m Llamar a alguien"""
+        await self._bypass_cooldown(ctx)
+        if tiempo is None or mensaje is None:
+            return await ctx.send("❌ Uso: `cx!recordar [tiempo] [mensaje]`\nEjemplo: `cx!recordar 10m Sacar al perro`")
+
+        # Parsear tiempo
+        unidad = tiempo[-1].lower()
+        try:
+            valor = int(tiempo[:-1])
+        except ValueError:
+            return await ctx.send("❌ Formato de tiempo inválido. Usa `10m`, `2h` o `30s`.")
+
+        if unidad == "s":
+            segundos = valor
+        elif unidad == "m":
+            segundos = valor * 60
+        elif unidad == "h":
+            segundos = valor * 3600
+        else:
+            return await ctx.send("❌ Unidad no válida. Usa `s` (segundos), `m` (minutos) o `h` (horas).")
+
+        if segundos > 86400:
+            return await ctx.send("❌ Máximo 24 horas de recordatorio.")
+
+        await ctx.send(f"⏰ Recordatorio establecido. Te aviso en **{tiempo}**.")
+
+        async def _recordar():
+            await asyncio.sleep(segundos)
+            try:
+                await ctx.author.send(f"⏰ **Recordatorio:** {mensaje}")
+            except discord.Forbidden:
+                await ctx.send(f"⏰ {ctx.author.mention} — tu recordatorio: **{mensaje}**")
+
+        asyncio.create_task(_recordar())
+
+    # --- BF ---
     @commands.command(name="bf", aliases=["blackflash"])
     async def bf_command(self, ctx, usuario: discord.Member = None):
         """Lanza un Black Flash. 5% de duplicar tu aura."""
@@ -267,17 +464,16 @@ class Extras(commands.Cog):
                 )
                 await canal.send(msg)
 
-    # --- DE (fusionado desde jujutsu) ---
+    # --- DE ---
     @commands.command(name="de", aliases=["dominio"])
     async def de_command(self, ctx, usuario: discord.Member = None):
         """Ejecuta una Expansión de Dominio."""
         from comandos_gifs import de as _de
         await _de(ctx, usuario)
 
-    # --- SETAURA (solo admin) ---
+    # --- SETAURA (admin) ---
     @commands.command(name="setaura")
     async def set_aura_cmd(self, ctx, miembro: discord.Member = None, valor: int = None):
-        """[Admin] Establece el aura de un usuario manualmente."""
         if ctx.author.id != ADMIN_ID:
             return
         if miembro is None or valor is None:
@@ -286,10 +482,9 @@ class Extras(commands.Cog):
             set_aura_usuario(self.aura_data, str(miembro.id), valor)
         await ctx.send(f"✅ Aura de {miembro.mention} establecida a **{valor} pts**.")
 
-    # --- RESETAURA (solo admin) ---
+    # --- RESETAURA (admin) ---
     @commands.command(name="resetaura")
     async def reset_aura_cmd(self, ctx, miembro: discord.Member = None):
-        """[Admin] Resetea el aura de un usuario."""
         if ctx.author.id != ADMIN_ID:
             return
         if miembro is None:
