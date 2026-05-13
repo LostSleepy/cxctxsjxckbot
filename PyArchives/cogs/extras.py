@@ -23,6 +23,7 @@ from utils.gif_manager import get_giphy_gif
 DEDOS_DATA_PATH: Path = BASE_DIR / "dedos_data.json"
 INVENTARIO_PATH: Path = BASE_DIR / "inventario_data.json"
 TIENDA_PATH: Path = BASE_DIR / "tienda_data.json"
+EFECTOS_PATH: Path = BASE_DIR / "active_effects.json"
 
 log = logging.getLogger(__name__)
 
@@ -171,6 +172,21 @@ def _guardar_inventario(data: Dict[str, list], path: Path = INVENTARIO_PATH) -> 
     temp.replace(path)
 
 
+def _cargar_efectos(path: Path = EFECTOS_PATH) -> Dict[str, dict]:
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return {}
+
+
+def _guardar_efectos(data: Dict[str, dict], path: Path = EFECTOS_PATH) -> None:
+    temp = path.with_suffix(".tmp")
+    with open(temp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    temp.replace(path)
+
+
 # ── Shop items ─────────────────────────────────────────────────────────────────
 TIENDA_ITEMS: List[dict] = [
     {"id": "glow", "nombre": "✨ Brillo de Aura", "desc": "Tu nombre brilla en el ranking.", "precio": 500},
@@ -265,11 +281,22 @@ class Extras(commands.Cog):
         miembro = miembro or ctx.author
         puntos = await self.aura_manager.get_aura(str(miembro.id))
 
+        # Check for boost
+        uid = str(miembro.id)
+        efectos = _cargar_efectos()
+        boost_activo = efectos.get(uid, {}).get("boost", False)
+        if boost_activo and miembro.id == ctx.author.id:
+            puntos *= 2
+            efectos[uid]["boost"] = False
+            _guardar_efectos(efectos)
+
         embed = discord.Embed(
             title=f"✨ Aura de {miembro.display_name}",
             description=self.aura_manager.get_aura_message(puntos),
             color=discord.Color.gold() if puntos >= 0 else discord.Color.dark_red(),
         )
+        if boost_activo and miembro.id == ctx.author.id:
+            embed.description += "\n\n🚀 **¡Boost activado!** Has recibido el doble de aura."
         embed.set_image(url=self.aura_manager.get_aura_gif(puntos))
         embed.set_footer(text="Se resetea cada 24h.")
         await ctx.send(embed=embed)
@@ -479,6 +506,19 @@ class Extras(commands.Cog):
         cantidad = random.randint(50, 300)
         uid_ladron = str(ctx.author.id)
         uid_obj = str(objetivo.id)
+
+        # Check if target has shield
+        efectos = _cargar_efectos()
+        escudos = efectos.get(uid_obj, {}).get("shields", 0)
+        if escudos > 0:
+            efectos[uid_obj]["shields"] = escudos - 1
+            _guardar_efectos(efectos)
+            await ctx.send(
+                f"🛡️ **ESCUDO ACTIVADO.** {ctx.author.mention} intentó robar a "
+                f"{objetivo.mention} pero su escudo lo protegió. "
+                f"Le queda(n) **{escudos - 1}** escudo(s)."
+            )
+            return
 
         if random.random() < 0.5:
             # Success
@@ -1309,6 +1349,82 @@ class Extras(commands.Cog):
         embed.set_footer(text=f"🥖 Aura: {aura} pts | Sigue coleccionando")
         await ctx.send(embed=embed)
 
+    # ── Usar objetos ────────────────────────────────────────────────────────────
+    @commands.command(name="usar")
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def usar_item(self, ctx: commands.Context, *, item_id: str = None) -> None:
+        """Usa un objeto de tu inventario: glow, skip, shield, boost"""
+        await self._bypass_cooldown(ctx)
+
+        VALID_ITEMS = {
+            "skip": "🔄 Reintento de Aura",
+            "shield": "🛡️ Escudo de Aura",
+            "boost": "🚀 Multiplicador x2",
+        }
+
+        if not item_id or item_id not in VALID_ITEMS:
+            await ctx.send(
+                f"❌ Usa: `!usar <item>`\nItems disponibles: {', '.join(f'`{k}`' for k in VALID_ITEMS)}"
+            )
+            return
+
+        uid = str(ctx.author.id)
+
+        # Load inventory
+        inventario = _cargar_inventario()
+        user_items = inventario.get(uid, [])
+
+        # Check if user has the item
+        idx = None
+        for i, item in enumerate(user_items):
+            if item["id"] == item_id:
+                idx = i
+                break
+
+        if idx is None:
+            await ctx.send(f"❌ No tienes **{VALID_ITEMS[item_id]}** en tu inventario.")
+            return
+
+        # Remove the item from inventory
+        user_items.pop(idx)
+        inventario[uid] = user_items
+        _guardar_inventario(inventario)
+
+        item_nombre = VALID_ITEMS[item_id]
+
+        # Apply effects
+        if item_id == "skip":
+            # Remove user's aura data so get_aura generates a new value
+            await self.aura_manager.reset_aura(uid)
+            # But this would need them to use !aura to see it
+            await ctx.send(
+                f"🔄 **Reintento de Aura** activado. Usa `!aura` para obtener "
+                "una nueva aura diaria."
+            )
+
+        elif item_id == "shield":
+            efectos = _cargar_efectos()
+            if uid not in efectos:
+                efectos[uid] = {}
+            efectos[uid]["shields"] = efectos[uid].get("shields", 0) + 1
+            _guardar_efectos(efectos)
+            escudos_totales = efectos[uid]["shields"]
+            await ctx.send(
+                f"🛡️ **Escudo de Aura** activado. Tienes **{escudos_totales}** "
+                f"escudo{'s' if escudos_totales != 1 else ''} activo{'s' if escudos_totales != 1 else ''}. "
+                "El próximo robo que reciban será bloqueado."
+            )
+
+        elif item_id == "boost":
+            efectos = _cargar_efectos()
+            if uid not in efectos:
+                efectos[uid] = {}
+            efectos[uid]["boost"] = True
+            _guardar_efectos(efectos)
+            await ctx.send(
+                f"🚀 **Multiplicador x2** activado. Tu próximo `!aura` te dará "
+                "el doble de puntos."
+            )
 
     # ── Decir ────────────────────────────────────────────────────────────────
     @commands.command(name="decir", aliases=["say"])
