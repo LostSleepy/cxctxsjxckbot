@@ -518,7 +518,8 @@ class Utilidad(commands.Cog):
                 "`ppt` `piedra` — Piedra, Papel o Tijera vs Teto\n"
                 "`coinflip` `tirar` — Cara o cruz\n"
                 "`insultar` — Insulta a alguien con estilo\n"
-                "`felicitar` — Felicita a un usuario"
+                "`felicitar` — Felicita a un usuario\n"
+                "`fraude` `fraud` — Fraud scan brainrot definitivo 🔍"
             ),
             inline=False,
         )

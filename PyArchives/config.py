@@ -32,7 +32,7 @@ ORDENES_ALEJAMIENTO_PATH: Path = BASE_DIR / "ordenes_alejamiento.json"
 # ─── APIs ─────────────────────────────────────────────────────────────────────
 GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
 GROQ_MODEL: str = "llama-3.1-8b-instant"
-GROQ_MAX_TOKENS: int = 250
+GROQ_MAX_TOKENS: int = 200
 
 # ─── Web Server ────────────────────────────────────────────────────────────────
 PORT: int = int(os.getenv("PORT", "8080"))
