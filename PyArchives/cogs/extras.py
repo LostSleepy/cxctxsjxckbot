@@ -133,7 +133,7 @@ def _limpiar_votos_expirados(votos: Dict[str, list], ahora: float) -> None:
             del votos[uid]
 
 
-def _cargar_dedos(path: Path) -> Dict[str, int]:
+def _cargar_dedos(path: Path = DEDOS_DATA_PATH) -> Dict[str, int]:
     """Load finger data from JSON file."""
     if not path.exists():
         return {}
@@ -144,7 +144,7 @@ def _cargar_dedos(path: Path) -> Dict[str, int]:
         return {}
 
 
-def _guardar_dedos(data: Dict[str, int], path: Path) -> None:
+def _guardar_dedos(data: Dict[str, int], path: Path = DEDOS_DATA_PATH) -> None:
     """Save finger data to JSON file atomically."""
     temp = path.with_suffix(".tmp")
     with open(temp, "w", encoding="utf-8") as f:
@@ -152,7 +152,7 @@ def _guardar_dedos(data: Dict[str, int], path: Path) -> None:
     temp.replace(path)
 
 
-def _cargar_inventario(path: Path) -> Dict[str, list]:
+def _cargar_inventario(path: Path = INVENTARIO_PATH) -> Dict[str, list]:
     """Load inventory data from JSON file."""
     if not path.exists():
         return {}
@@ -163,7 +163,7 @@ def _cargar_inventario(path: Path) -> Dict[str, list]:
         return {}
 
 
-def _guardar_inventario(data: Dict[str, list], path: Path) -> None:
+def _guardar_inventario(data: Dict[str, list], path: Path = INVENTARIO_PATH) -> None:
     """Save inventory data to JSON file atomically."""
     temp = path.with_suffix(".tmp")
     with open(temp, "w", encoding="utf-8") as f:
@@ -1076,7 +1076,7 @@ class Extras(commands.Cog):
         ]
 
         nombre, cantidad, desc = random.choice(efectos)
-        self.aura_manager.modify_aura(ctx.author.id, ctx.author.name, cantidad)
+        await self.aura_manager.modify_aura(str(ctx.author.id), cantidad)
 
         embed = discord.Embed(
             title="🔮 Ritual de Teto",
@@ -1119,7 +1119,7 @@ class Extras(commands.Cog):
 
             # A small aura bonus for finding a finger
             bonus = random.randint(5, 15)
-            self.aura_manager.modify_aura(ctx.author.id, ctx.author.name, bonus)
+            await self.aura_manager.modify_aura(str(ctx.author.id), bonus)
             embed.add_field(name="✨ Bonus de aura", value=f"+{bonus} pts por tu hallazgo", inline=False)
 
             if total >= 20:
@@ -1228,7 +1228,7 @@ class Extras(commands.Cog):
             return
 
         # Check if user has enough aura
-        aura_actual = self.aura_manager.get_aura(ctx.author.id)
+        aura_actual = await self.aura_manager.get_aura(str(ctx.author.id))
         precio = item["precio"]
 
         if aura_actual < precio:
@@ -1237,7 +1237,7 @@ class Extras(commands.Cog):
             return
 
         # Deduct aura
-        self.aura_manager.modify_aura(ctx.author.id, ctx.author.name, -precio)
+        await self.aura_manager.modify_aura(str(ctx.author.id), -precio)
 
         # Add to inventory
         inventario = _cargar_inventario()
@@ -1305,7 +1305,7 @@ class Extras(commands.Cog):
         recent = "\n".join([f"• {i['nombre']} — {i.get('fecha', 'desconocida')}" for i in last_items])
         embed.add_field(name="🕐 Últimas adquisiciones", value=recent, inline=False)
 
-        aura = self.aura_manager.get_aura(ctx.author.id)
+        aura = await self.aura_manager.get_aura(str(ctx.author.id))
         embed.set_footer(text=f"🥖 Aura: {aura} pts | Sigue coleccionando")
         await ctx.send(embed=embed)
 
@@ -1387,8 +1387,8 @@ class Extras(commands.Cog):
             await ctx.send("❌ Usa: `!giveaura @usuario <cantidad>` (negativo para quitar)")
             return
 
-        self.aura_manager.modify_aura(usuario.id, usuario.name, cantidad)
-        new_aura = self.aura_manager.get_aura(usuario.id)
+        await self.aura_manager.modify_aura(str(usuario.id), cantidad)
+        new_aura = await self.aura_manager.get_aura(str(usuario.id))
 
         emoji = "➕" if cantidad >= 0 else "➖"
         embed = discord.Embed(
