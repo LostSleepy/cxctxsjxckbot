@@ -11,6 +11,7 @@ from discord.ext import commands
 from groq import AsyncGroq
 
 from config import ADMIN_ID, GROQ_API_KEY, GROQ_MAX_TOKENS, GROQ_MODEL, COMMAND_PREFIX
+from known_users import KNOWN_USERS
 
 log = logging.getLogger(__name__)
 
@@ -234,6 +235,27 @@ class IA(commands.Cog):
             history,
             self.bot.user.id,
         )
+
+        # ── Known user identity context ──────────────────────────────────────
+        # Tell Teto who is talking to her
+        user_info = KNOWN_USERS.get(message.author.id)
+        if user_info:
+            messages.append({
+                "role": "system",
+                "content": (
+                    f"El usuario que te está escribiendo ahora es {user_info['name']}. "
+                    f"{user_info['description']}"
+                ),
+            })
+        else:
+            messages.append({
+                "role": "system",
+                "content": (
+                    f"El usuario que te está escribiendo se llama {message.author.display_name}. "
+                    "No está en tu lista de conocidos, trátalo con amabilidad "
+                    "pero sin confianza excesiva."
+                ),
+            })
 
         # Add the current user message (clean @mention if present)
         user_content = message.content
