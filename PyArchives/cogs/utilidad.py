@@ -375,6 +375,7 @@ class Utilidad(commands.Cog):
         embed.add_field(
             name="🔮 Diversión",
             value=(
+                "`alaba` `glaze` — Teto alaba a quien digas 👑\n"
                 "`picha` `pp` — Medición científica diaria\n"
                 "`8ball` `ball` — La bola 8 mística\n"
                 "`ship` — Compatibilidad entre dos usuarios\n"
@@ -418,7 +419,8 @@ class Utilidad(commands.Cog):
                     "`re` `reunion` — Reunir toda la voz\n"
                     "`muteall` `unmuteall` — Silenciar/Dessilenciar canal\n"
                     "`cita` — Mover dos usuarios al canal de citas\n"
-                    "`setaura` `resetaura` — Control manual de aura"
+                    "`setaura` `resetaura` — Control manual de aura\n"
+                    "`teamo` — 💕 (secreto)"
                 ),
                 inline=False,
             )

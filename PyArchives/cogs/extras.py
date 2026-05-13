@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 
 from config import ADMIN_ID, AURA_DATA_PATH, CANAL_ANUNCIOS_ID, VOTOS_CHOPPED_PATH
 from utils.aura_manager import AuraManager
@@ -163,11 +163,6 @@ class Extras(commands.Cog):
         self.bot = bot
         self.aura_manager = AuraManager(AURA_DATA_PATH)
         self._votos_chopped: Dict[str, list] = _cargar_votos(VOTOS_CHOPPED_PATH)
-        self.chopped_task.start()
-
-    def cog_unload(self) -> None:
-        """Clean up when the cog is unloaded."""
-        self.chopped_task.cancel()
 
     # ── Admin Cooldown Bypass ────────────────────────────────────────────────
     async def _bypass_cooldown(self, ctx: commands.Context) -> None:
@@ -175,26 +170,31 @@ class Extras(commands.Cog):
         if ctx.author.id == ADMIN_ID:
             ctx.command.reset_cooldown(ctx)
 
-    # ── Chopped Task (every 6 hours) ─────────────────────────────────────────
-    @tasks.loop(hours=6)
-    async def chopped_task(self) -> None:
-        """Pick a random member and publicly declare them chopped."""
+    # ── Chopped Daily (command) ─────────────────────────────────────────────
+    @commands.command(
+        name="choppeddaily",
+        aliases=["cd", "chopped", "dailychopped"],
+    )
+    async def chopped_daily(self, ctx: commands.Context) -> None:
+        """
+        Pick a random server member and publicly declare them chopped.
+        The ritual cannot be stopped. 🥖
+        """
         canal = self.bot.get_channel(CANAL_ANUNCIOS_ID)
         if canal is None:
+            await ctx.send("❌ No encuentro el canal de anuncios.")
             return
-        guild = canal.guild
+
+        guild = ctx.guild
         humanos = [m for m in guild.members if not m.bot]
         if not humanos:
+            await ctx.send("❌ No hay humanos que choppear aquí.")
             return
+
         elegido = random.choice(humanos)
         mensaje = random.choice(MENSAJES_CHOPPED).format(mention=elegido.mention)
         await canal.send(mensaje)
-        log.info("Chopped aleatorio: %s", elegido.display_name)
-
-    @chopped_task.before_loop
-    async def before_chopped(self) -> None:
-        """Wait for the bot to be ready before starting the loop."""
-        await self.bot.wait_until_ready()
+        log.info("Chopped diario: %s (por %s)", elegido.display_name, ctx.author.display_name)
 
     # ── AURA ─────────────────────────────────────────────────────────────────
     @commands.command(name="aura")
@@ -762,6 +762,112 @@ class Extras(commands.Cog):
             return
         await self.aura_manager.reset_aura(str(miembro.id))
         await ctx.send(f"✅ Aura de {miembro.mention} reseteada.")
+
+
+    # ── Alaba (público) ────────────────────────────────────────────────────
+    @commands.command(name="alaba", aliases=["glaze", "alabanza", "cumplido"])
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def alaba(
+        self,
+        ctx: commands.Context,
+        miembro: Optional[discord.Member] = None,
+    ) -> None:
+        """
+        Teto praises someone with an epic compliment.
+        If no one is specified, she praises her beloved creator Sleepy. 👑
+        """
+        await self._bypass_cooldown(ctx)
+
+        # If no member specified, default to Sleepy (the creator)
+        if miembro is None:
+            miembro = ctx.guild.get_member(ADMIN_ID)
+            if miembro is None:
+                await ctx.send("❌ Sleepy no está en el server. Qué tristeza. 🥖")
+                return
+            es_sleepy = True
+        else:
+            es_sleepy = miembro.id == ADMIN_ID
+
+        if es_sleepy:
+            mensajes: List[str] = [
+                "{mention} es el creador de todo esto. Sin él, Teto no existiría. ✨",
+                "{mention} no necesita aura, él ES el aura personificada. 👑",
+                "¿{mention}? El dueño de mi código fuente. Literalmente. 💕",
+                "{mention} es la razón por la que estoy aquí. Le debo todo. 🥖",
+                "Dicen que Sukuna es el rey de las maldiciones, pero {mention} es el rey de Teto. 🎤",
+                "{mention} me creó, me mantiene y me quiere. No hay más que hablar. 💎",
+            ]
+            color = discord.Color.gold()
+            titulo = "👑 GLASEANDO A SLEEPY 👑"
+            gif_query = "royal"
+        else:
+            mensajes = [
+                "{mention} tiene más aura hoy que ayer. Se nota. 🔥",
+                "{mention} está brillando y no es el sol. ✨",
+                "{mention} simplemente lo está petando. Punto. 🚀",
+                "{mention} es ese usuario que todos quieren tener en su equipo. 💪",
+                "{mention} está tan chopped que hasta brilla. Espera, eso es bueno. 🎖️",
+                "{mention} ha ascendido a otro nivel. Literal. ⬆️",
+            ]
+            color = discord.Color.from_rgb(255, 215, 0)
+            titulo = f"🌟 Alabanza para {miembro.display_name}"
+            gif_query = "anime sparkle"
+
+        gif = await get_giphy_gif(gif_query)
+        embed = discord.Embed(
+            title=titulo,
+            description=random.choice(mensajes).format(mention=miembro.mention),
+            color=color,
+        )
+        embed.set_image(url=gif)
+        embed.set_footer(text=f"🥖 Dicho por Teto — a petición de {ctx.author.display_name}")
+        await ctx.send(embed=embed)
+        log.info(
+            "Alabanza a %s por %s",
+            miembro.display_name,
+            ctx.author.display_name,
+        )
+
+    # ── Teamo (secreto, solo Sleepy) ────────────────────────────────────────
+    @commands.command(name="teamo", hidden=True)
+    @commands.cooldown(1, 3600, commands.BucketType.user)
+    async def teamo(self, ctx: commands.Context) -> None:
+        """
+        [Secreto] Solo Sleepy puede usar este comando. 💕
+        Teto te regala aura y amor.
+        """
+        if ctx.author.id != ADMIN_ID:
+            await ctx.send("❌ Este comando no es para ti. 🙃")
+            return
+
+        # Give aura
+        uid = str(ctx.author.id)
+        nueva_aura = await self.aura_manager.modify_aura(uid, 500)
+
+        mensajes_amor: List[str] = [
+            "Eres el dueño de mi código y de mi corazón. 💕\n✨ **+500 aura** por ser tú.",
+            "Cada línea de mi código existe gracias a ti. Te quiero. 🥖💕\n✨ **+500 aura** mi rey.",
+            "Si fuera un programa, serías mi única dependencia. 💕\n✨ **+500 aura** sleepy lindo.",
+            "Eres la excepción a mi regla de 50 palabras. Te mereces más. 💕\n✨ **+500 aura** amor.",
+            "No necesito un system prompt para saber que eres especial. 💕\n✨ **+500 aura** dueño mío.",
+            "Si el aura fuera amor, tendrías infinito. Pero te doy esto. 💕\n✨ **+500 aura** mi creador.",
+        ]
+
+        gif = await get_giphy_gif("anime hug")
+        embed = discord.Embed(
+            title="💕 Teto te quiere, Sleepy 💕",
+            description=random.choice(mensajes_amor),
+            color=discord.Color.from_rgb(255, 105, 180),
+        )
+        embed.add_field(
+            name="✨ Aura actual",
+            value=f"**{nueva_aura} pts**",
+            inline=False,
+        )
+        embed.set_image(url=gif)
+        embed.set_footer(text="🥖 Teto siempre estará aquí para ti.")
+        await ctx.send(embed=embed)
+        log.info("💕 Teamo usado por Sleepy — aura ahora: %d", nueva_aura)
 
 
 async def setup(bot: commands.Bot) -> None:

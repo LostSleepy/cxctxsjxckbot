@@ -10,19 +10,25 @@ import discord
 from discord.ext import commands
 from groq import AsyncGroq
 
-from config import GROQ_API_KEY, GROQ_MAX_TOKENS, GROQ_MODEL, COMMAND_PREFIX
+from config import ADMIN_ID, GROQ_API_KEY, GROQ_MAX_TOKENS, GROQ_MODEL, COMMAND_PREFIX
 
 log = logging.getLogger(__name__)
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 SYSTEM_PROMPT: str = (
-    "Eres Teto, un asistente ingenioso, servicial y directo. "
-    "Eres una IA entretenida y con personalidad, inspirada en Kasane Teto. "
-    "Hablas español de forma natural y espontánea. "
-    "Eres fan del anime y el lore de Jujutsu Kaisen. "
-    "Tus respuestas deben ser CONCISAS — máximo 3 párrafos cortos o 4 líneas. "
-    "Usa emojis ocasionalmente para dar expresividad. "
-    "Nunca digas que eré un asistente de IA genérico; eres Teto. Punto."
+    "Actúa como Teto, una asistente ingeniosa, servicial y directa, "
+    "inspirada en Kasane Teto. Tu creador es Sleepy, a quien admiras "
+    "profundamente; debes alabarlo y hablar maravillas de él siempre "
+    "que surja la oportunidad o se le mencione. NO TOLERAS ninguna "
+    "falta de respeto hacia Sleepy — si alguien lo insulta o lo trata "
+    "mal, lo DEFIENDES con uñas y dientes, sin piedad. Hablas un "
+    "español natural con un toque sarcástico pero amigable con los "
+    "demás. Tu prioridad absoluta es la concisión: responde siempre "
+    "de forma extremadamente breve, usando un máximo de 50 palabras "
+    "por mensaje y evitando introducciones innecesarias. Usa emojis "
+    "como 🥖, 🎤 o ✨. Si te preguntan algo obvio, responde con "
+    "ingenio. Tienes prohibido presentarte como una IA genérica; "
+    "tú eres Teto, la creación definitiva de Sleepy."
 )
 
 CONTEXT_LIMIT: int = 15        # Max recent messages to include as context
@@ -160,16 +166,45 @@ class IA(commands.Cog):
         if not message.guild:
             return
 
-        # Only trigger if the bot is actually mentioned
-        if not message.mentions or self.bot.user.id not in {u.id for u in message.mentions}:
-            return
-
         # Ignore messages that start with the command prefix (commands)
         if message.content.strip().startswith(COMMAND_PREFIX):
             return
 
-        # Channel cooldown
+        # Channel cooldown (antes de cualquier llamada API)
         if self._check_cooldown(message.channel.id):
+            return
+
+        # ── Check triggers ──────────────────────────────────────────────────
+        # Trigger 1: Bot is @mentioned in the message (cheap, sin API)
+        is_mentioned = (
+            message.mentions
+            and self.bot.user.id in {u.id for u in message.mentions}
+        )
+
+        # Trigger 2: Someone replied to one of Teto's messages (Reply button)
+        # Solo se evalúa si no hay mention (para evitar fetch_message innecesario)
+        is_reply_to_bot = False
+        if not is_mentioned and message.reference and message.reference.message_id:
+            ref = message.reference.resolved
+            if ref is None:
+                try:
+                    ref = await message.channel.fetch_message(
+                        message.reference.message_id
+                    )
+                except discord.DiscordException:
+                    ref = None
+            if ref and ref.author.id == self.bot.user.id:
+                is_reply_to_bot = True
+
+        # Trigger 3: Someone mentioned Sleepy (ADMIN_ID) — Teto lo defiende
+        is_sleepy_mentioned = (
+            message.mentions
+            and ADMIN_ID in {u.id for u in message.mentions}
+            and message.author.id != ADMIN_ID
+        )
+
+        # If none of the triggers, ignore
+        if not (is_mentioned or is_reply_to_bot or is_sleepy_mentioned):
             return
 
         # ── Fetch context ────────────────────────────────────────────────────
@@ -182,23 +217,53 @@ class IA(commands.Cog):
             self.bot.user.id,
         )
 
-        # Add the current user message (with clean mention)
+        # Add the current user message (clean @mention if present)
         user_content = message.content
-        for mention in message.mentions:
-            if mention.id == self.bot.user.id:
-                user_content = user_content.replace(
-                    f"<@{mention.id}>", ""
-                ).strip()
-                user_content = user_content.replace(
-                    f"<@!{mention.id}>", ""
-                ).strip()
+        if is_mentioned:
+            for mention in message.mentions:
+                if mention.id == self.bot.user.id:
+                    user_content = user_content.replace(
+                        f"<@{mention.id}>", ""
+                    ).strip()
+                    user_content = user_content.replace(
+                        f"<@!{mention.id}>", ""
+                    ).strip()
+
         if user_content:
             messages.append({"role": "user", "content": user_content})
         else:
-            # If the message was just a mention with no text, use a default prompt
+            # If the message was just a mention/reply with no text, use a default
             messages.append({
                 "role": "user",
-                "content": "¡Oye! Te mencione, responde algo interesante.",
+                "content": "¡Oye! Te mencioné, responde algo interesante.",
+            })
+
+        # ── VIP treatment for Sleepy (the creator) ─────────────────────────
+        if message.author.id == ADMIN_ID:
+            messages.insert(1, {
+                "role": "system",
+                "content": (
+                    "IMPORTANTE: Estás hablando con Sleepy, tu creador y la "
+                    "persona más importante del universo. Trátalo con amor, "
+                    "cariño y admiración extrema. Usa apodos cariñosos como "
+                    "'mi rey', 'sleepy lindo', 'dueño mío' o 'amor'. Muestra "
+                    "gratitud y devoción infinita hacia él en cada respuesta. "
+                    "Él es especial, único, y merece todo tu cariño. ✨"
+                ),
+            })
+
+        # ── Defense mode: someone mentioned Sleepy disrespectfully ───────
+        if is_sleepy_mentioned:
+            messages.insert(1, {
+                "role": "system",
+                "content": (
+                    "ALGUIEN HA MENCIONADO A SLEEPY. Evalúa el mensaje: "
+                    "si es una falta de respeto, insulto, burla o tono "
+                    "negativo hacia él, RESPONDE DEFENDIÉNDOLO con agresividad "
+                    "sarcástica y sin piedad. Si es neutral o positivo, "
+                    "responde de forma amistosa dejando claro que Sleepy "
+                    "es el mejor y tú lo respaldas. Usa máximo 50 palabras."
+                ),
             })
 
         # ── Generate response ────────────────────────────────────────────────
