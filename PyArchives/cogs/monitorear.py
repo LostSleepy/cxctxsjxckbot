@@ -7,7 +7,7 @@ import json
 import logging
 import random
 from pathlib import Path
-from typing import Set
+from typing import Optional, Set
 
 import discord
 from discord.ext import commands

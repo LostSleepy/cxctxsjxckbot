@@ -24,6 +24,11 @@ class Utilidad(commands.Cog):
         self.bot = bot
         self._start_time: float = time.time()
 
+    async def _bypass_cooldown(self, ctx: commands.Context) -> None:
+        """Remove cooldown for the configured admin."""
+        if ctx.author.id == ADMIN_ID:
+            ctx.command.reset_cooldown(ctx)
+
     # ── Ping ──────────────────────────────────────────────────────────────────
     @commands.command(name="ping")
     async def ping(self, ctx: commands.Context) -> None:
@@ -341,6 +346,126 @@ class Utilidad(commands.Cog):
                 pass
         await ctx.send(f"🔊 {count} usuarios dessilenciados.")
 
+    # ── Servidor Info ────────────────────────────────────────────────────────
+    @commands.command(name="servidor", aliases=["server", "serverinfo", "guild", "guildinfo"])
+    async def servidor_info(self, ctx: commands.Context) -> None:
+        """Muestra información del servidor."""
+        guild = ctx.guild
+        if not guild:
+            await ctx.send("❌ Debes estar en un servidor para usar este comando.")
+            return
+
+        # Count bot vs human members
+        total_members = guild.member_count or 0
+        bots = sum(1 for m in guild.members if m.bot) if guild.members else 0
+        humans = total_members - bots
+
+        # Channel counts
+        text_channels = len(guild.text_channels)
+        voice_channels = len(guild.voice_channels)
+        categories = len(guild.categories)
+
+        embed = discord.Embed(
+            title=f"📊 {guild.name}",
+            description=guild.description or "Sin descripción",
+            color=discord.Color.blue()
+        )
+        if guild.icon:
+            embed.set_thumbnail(url=guild.icon.url)
+
+        embed.add_field(name="👑 Dueño", value=guild.owner.mention if guild.owner else "Desconocido", inline=True)
+        embed.add_field(name="📅 Creado", value=guild.created_at.strftime("%d/%m/%Y"), inline=True)
+        embed.add_field(name="🆔 ID", value=f"`{guild.id}`", inline=True)
+        embed.add_field(name="👥 Miembros", value=f"{humans} humanos • {bots} bots", inline=True)
+        embed.add_field(name="💬 Canales", value=f"{text_channels} texto • {voice_channels} voz • {categories} cat.", inline=True)
+        embed.add_field(name="🚀 Boosts", value=f"{guild.premium_subscription_count} (Nivel {guild.premium_tier})", inline=True)
+        embed.add_field(name="🎭 Roles", value=str(len(guild.roles)), inline=True)
+        embed.add_field(name="😀 Emojis", value=f"{len(guild.emojis)}/{guild.emoji_limit * 2}", inline=True)
+
+        await ctx.send(embed=embed)
+
+
+    # ── Rol Info ─────────────────────────────────────────────────────────────
+    @commands.command(name="rol", aliases=["role", "roleinfo", "rolinfo"])
+    async def rol_info(self, ctx: commands.Context, *, rol: discord.Role = None) -> None:
+        """Muestra información de un rol del servidor."""
+        if not rol:
+            await ctx.send("❌ Usa: `!rol @rol`")
+            return
+
+        # Count members with this role
+        members_with_role = len([m for m in ctx.guild.members if rol in m.roles]) if ctx.guild.members else 0
+
+        embed = discord.Embed(
+            title=f"🎭 Rol: {rol.name}",
+            color=rol.color if rol.color.value else discord.Color.default()
+        )
+        embed.add_field(name="🆔 ID", value=f"`{rol.id}`", inline=True)
+        embed.add_field(name="👥 Miembros", value=str(members_with_role), inline=True)
+        embed.add_field(name="🎨 Color", value=f"`#{rol.color.value:06X}`" if rol.color.value else "Ninguno", inline=True)
+        embed.add_field(name="📌 Posición", value=str(rol.position), inline=True)
+        embed.add_field(name="🔊 Mencionable", value="Sí" if rol.mentionable else "No", inline=True)
+        embed.add_field(name="👁️ Visible", value="Sí" if rol.hoist else "No", inline=True)
+        embed.add_field(name="📅 Creado", value=rol.created_at.strftime("%d/%m/%Y"), inline=True)
+
+        await ctx.send(embed=embed)
+
+
+    # ── Emoji ────────────────────────────────────────────────────────────────
+    @commands.command(name="emoji", aliases=["agrandar", "jumbo", "emojigrande"])
+    async def emoji_info(self, ctx: commands.Context, *, nombre_emoji: str = None) -> None:
+        """Muestra un emoji personalizado del servidor en grande."""
+        if not nombre_emoji:
+            await ctx.send("❌ Usa: `!emoji <nombre>`")
+            return
+
+        nombre_emoji = nombre_emoji.strip().strip(':')
+
+        # Search through guild emojis
+        found = None
+        for emoji in ctx.guild.emojis:
+            if emoji.name.lower() == nombre_emoji.lower():
+                found = emoji
+                break
+
+        if not found:
+            await ctx.send(f"❌ No encontré un emoji llamado `{nombre_emoji}` en este servidor.")
+            return
+
+        embed = discord.Embed(
+            title=f":{found.name}:",
+            description=f"🔗 **Link:** [Click aquí]({found.url})\n"
+                        f"🆔 **ID:** `{found.id}`\n"
+                        f"{'🎞️ **Animado**' if found.animated else '🖼️ **Estático**'}",
+            color=discord.Color.gold()
+        )
+        embed.set_image(url=found.url)
+        await ctx.send(embed=embed)
+
+
+    # ── Encuesta ─────────────────────────────────────────────────────────────
+    @commands.command(name="encuesta", aliases=["votacion", "poll"])
+    @commands.cooldown(1, 30, commands.BucketType.user)
+    async def encuesta(self, ctx: commands.Context, *, pregunta: str = None) -> None:
+        """Crea una encuesta con reacciones ✅/❌."""
+        await self._bypass_cooldown(ctx)
+        if not pregunta:
+            await ctx.send("❌ Usa: `!encuesta <pregunta>`")
+            return
+
+        embed = discord.Embed(
+            title="📊 Encuesta",
+            description=pregunta,
+            color=discord.Color.blue(),
+            timestamp=discord.utils.utcnow()
+        )
+        embed.set_footer(text=f"Propuesta por {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url)
+
+        message = await ctx.send(embed=embed)
+        await message.add_reaction("✅")
+        await message.add_reaction("❌")
+
+
     # ── Help ─────────────────────────────────────────────────────────────────
     @commands.command(name="help")
     async def help_command(self, ctx: commands.Context) -> None:
@@ -356,8 +481,11 @@ class Utilidad(commands.Cog):
         embed.add_field(
             name="🎭 Jujutsu Kaisen",
             value=(
-                "`de` `bf` — Expansión de Dominio y Black Flash "
-                "*(5% de duplicar aura)*"
+                "`de` `bf` — Expansión de Dominio y Black Flash\n"
+                "`ritual` — Ritual misterioso con efectos de aura\n"
+                "`maldicion` — Maldice a alguien (JJK style)\n"
+                "`dedo` `buscardedo` — Busca un dedo de Sukuna \n"
+                "`sukuna` `dedos` — Tus dedos de Sukuna recolectados"
             ),
             inline=False,
         )
@@ -368,7 +496,10 @@ class Utilidad(commands.Cog):
                 "`top` `ranking` — Top 10 del server\n"
                 "`da` `dueloaura` — Duelo aleatorio (+50/-100)\n"
                 "`robar` `rob` — Roba aura con 50% de éxito\n"
-                "`vc` `votochopped` — 3 votos = timeout 5 min"
+                "`vc` `votochopped` — 3 votos = timeout 5 min\n"
+                "`tienda` `shop` — Compra objetos con aura\n"
+                "`comprar` `buy` — Adquiere un objeto de la tienda\n"
+                "`inventario` `inv` — Tus objetos comprados"
             ),
             inline=False,
         )
@@ -383,7 +514,11 @@ class Utilidad(commands.Cog):
                 "`vs` `versus` — Combate entre dos usuarios\n"
                 "`dado` `d` — Lanza un dado (d6 por defecto)\n"
                 "`elegir` — Elige entre opciones\n"
-                "`aleatorio` — Usuario aleatorio del server"
+                "`aleatorio` — Usuario aleatorio del server\n"
+                "`ppt` `piedra` — Piedra, Papel o Tijera vs Teto\n"
+                "`coinflip` `tirar` — Cara o cruz\n"
+                "`insultar` — Insulta a alguien con estilo\n"
+                "`felicitar` — Felicita a un usuario"
             ),
             inline=False,
         )
@@ -396,6 +531,10 @@ class Utilidad(commands.Cog):
                 "`hora` — Reloj mundial\n"
                 "`uptime` — Tiempo activo\n"
                 "`recordar` `rem` — Recordatorio *(ej: `cx!recordar 10m texto`)*\n"
+                "`servidor` `server` — Info del servidor\n"
+                "`rol` `role` — Info de un rol\n"
+                "`emoji` `agrandar` — Emoji en grande\n"
+                "`encuesta` `poll` — Crea una votación\n"
                 "`teto` — 🥖"
             ),
             inline=False,
@@ -420,6 +559,12 @@ class Utilidad(commands.Cog):
                     "`muteall` `unmuteall` — Silenciar/Dessilenciar canal\n"
                     "`cita` — Mover dos usuarios al canal de citas\n"
                     "`setaura` `resetaura` — Control manual de aura\n"
+                    "`giveaura` `daraura` — Dar o quitar aura a alguien\n"
+                    "`decir` `say` — Teto habla por ti\n"
+                    "`saycanal` `hablar` — Teto habla en un canal\n"
+                    "`dm` `md` — Enviar MD a un usuario\n"
+                    "`anuncio` `announce` — Anuncio oficial\n"
+                    "`backup` `exportar` — Exportar datos del bot\n"
                     "`teamo` — 💕 (secreto)"
                 ),
                 inline=False,

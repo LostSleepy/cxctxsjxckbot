@@ -15,9 +15,14 @@ from typing import Dict, List, Optional, Tuple
 import discord
 from discord.ext import commands
 
-from config import ADMIN_ID, AURA_DATA_PATH, CANAL_ANUNCIOS_ID, VOTOS_CHOPPED_PATH
+from config import ADMIN_ID, AURA_DATA_PATH, BASE_DIR, CANAL_ANUNCIOS_ID, VOTOS_CHOPPED_PATH
 from utils.aura_manager import AuraManager
 from utils.gif_manager import get_giphy_gif
+
+# ── Data files ────────────────────────────────────────────────────────────────
+DEDOS_DATA_PATH: Path = BASE_DIR / "dedos_data.json"
+INVENTARIO_PATH: Path = BASE_DIR / "inventario_data.json"
+TIENDA_PATH: Path = BASE_DIR / "tienda_data.json"
 
 log = logging.getLogger(__name__)
 
@@ -128,6 +133,53 @@ def _limpiar_votos_expirados(votos: Dict[str, list], ahora: float) -> None:
             del votos[uid]
 
 
+def _cargar_dedos(path: Path) -> Dict[str, int]:
+    """Load finger data from JSON file."""
+    if not path.exists():
+        return {}
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _guardar_dedos(data: Dict[str, int], path: Path) -> None:
+    """Save finger data to JSON file atomically."""
+    temp = path.with_suffix(".tmp")
+    with open(temp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    temp.replace(path)
+
+
+def _cargar_inventario(path: Path) -> Dict[str, list]:
+    """Load inventory data from JSON file."""
+    if not path.exists():
+        return {}
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _guardar_inventario(data: Dict[str, list], path: Path) -> None:
+    """Save inventory data to JSON file atomically."""
+    temp = path.with_suffix(".tmp")
+    with open(temp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    temp.replace(path)
+
+
+# ── Shop items ─────────────────────────────────────────────────────────────────
+TIENDA_ITEMS: List[dict] = [
+    {"id": "glow", "nombre": "✨ Brillo de Aura", "desc": "Tu nombre brilla en el ranking.", "precio": 500},
+    {"id": "skip", "nombre": "🔄 Reintento de Aura", "desc": "Vuelve a tirar tu aura del día.", "precio": 800},
+    {"id": "shield", "nombre": "🛡️ Escudo de Aura", "desc": "Te protege de 1 robo de aura.", "precio": 600},
+    {"id": "boost", "nombre": "🚀 Multiplicador x2", "desc": "Tu próximo +aura se duplica.", "precio": 1200},
+]
+
+
 def _generar_picha(user_id: int) -> Tuple[int, str, str]:
     """
     Generate a scientifically accurate picha measurement.
@@ -163,6 +215,10 @@ class Extras(commands.Cog):
         self.bot = bot
         self.aura_manager = AuraManager(AURA_DATA_PATH)
         self._votos_chopped: Dict[str, list] = _cargar_votos(VOTOS_CHOPPED_PATH)
+        self._dedos: Dict[str, int] = _cargar_dedos(DEDOS_DATA_PATH)
+        self._inventario: Dict[str, list] = _cargar_inventario(INVENTARIO_PATH)
+        self._tienda_items: List[dict] = TIENDA_ITEMS
+        self._ahorcado_juegos: Dict[int, dict] = {}  # channel_id -> game state
 
     # ── Admin Cooldown Bypass ────────────────────────────────────────────────
     async def _bypass_cooldown(self, ctx: commands.Context) -> None:
@@ -231,10 +287,17 @@ class Extras(commands.Cog):
             return
 
         medallas = ["🥇", "🥈", "🥉"] + ["🔹"] * 7
+        inventario_data = _cargar_inventario()
         lineas: List[str] = []
         for i, (uid, puntos) in enumerate(ranking):
             nombre = ctx.guild.get_member(int(uid))
             display = nombre.display_name if nombre else f"ID:{uid}"
+            # Check if user has the glow item
+            tiene_glow = False
+            if uid in inventario_data:
+                tiene_glow = any(item["id"] == "glow" for item in inventario_data[uid].get("items", []))
+            if tiene_glow:
+                display = f"✨{display}✨"
             lineas.append(f"{medallas[i]} **{display}** — {puntos} pts")
 
         embed = discord.Embed(
@@ -830,7 +893,6 @@ class Extras(commands.Cog):
 
     # ── Teamo (secreto, solo Sleepy) ────────────────────────────────────────
     @commands.command(name="teamo", hidden=True)
-    @commands.cooldown(1, 3600, commands.BucketType.user)
     async def teamo(self, ctx: commands.Context) -> None:
         """
         [Secreto] Solo Sleepy puede usar este comando. 💕
@@ -853,7 +915,7 @@ class Extras(commands.Cog):
             "Si el aura fuera amor, tendrías infinito. Pero te doy esto. 💕\n✨ **+500 aura** mi creador.",
         ]
 
-        gif = await get_giphy_gif("anime hug")
+        gif = "https://i.pinimg.com/originals/63/91/26/639126a5ed46effc272235be01ad61e7.gif"
         embed = discord.Embed(
             title="💕 Teto te quiere, Sleepy 💕",
             description=random.choice(mensajes_amor),
@@ -868,6 +930,540 @@ class Extras(commands.Cog):
         embed.set_footer(text="🥖 Teto siempre estará aquí para ti.")
         await ctx.send(embed=embed)
         log.info("💕 Teamo usado por Sleepy — aura ahora: %d", nueva_aura)
+
+
+    # ── PPT (Piedra, Papel, Tijera) ────────────────────────────────────────
+    @commands.command(name="ppt", aliases=["piedrapapeltijera", "piedra"])
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def ppt(self, ctx: commands.Context, *, eleccion: str = None) -> None:
+        """Juega piedra, papel o tijera contra Teto."""
+        await self._bypass_cooldown(ctx)
+        opciones = {"piedra": "🪨", "papel": "📄", "tijera": "✂️"}
+        if eleccion is None or eleccion.lower() not in opciones:
+            await ctx.send("❌ Elige: `piedra`, `papel` o `tijera`. Ej: `cx!ppt piedra`")
+            return
+
+        user_choice = eleccion.lower()
+        bot_choice = random.choice(list(opciones.keys()))
+        reglas = {"piedra": "tijera", "tijera": "papel", "papel": "piedra"}
+
+        if user_choice == bot_choice:
+            resultado = "🤝 **Empate**"
+        elif reglas[user_choice] == bot_choice:
+            resultado = "🎉 **Ganaste**"
+            win_aura = random.randint(10, 50)
+            await self.aura_manager.modify_aura(str(ctx.author.id), win_aura)
+            resultado += f" ¡+{win_aura} aura!"
+        else:
+            resultado = "💀 **Perdiste**"
+
+        await ctx.send(
+            f"{opciones[user_choice]} Tú → {opciones[bot_choice]} Teto\n"
+            f"{resultado}"
+        )
+
+    # ── Coinflip ──────────────────────────────────────────────────────────────
+    @commands.command(name="coinflip", aliases=["tirar", "caraocruz"])
+    async def coinflip(self, ctx: commands.Context) -> None:
+        """Lanza una moneda al aire."""
+        resultado = random.choice(["🇨 **Cara**", "🇽 **Cruz**"])
+        await ctx.send(f"🪙 La moneda dice... {resultado}")
+
+    # ── Insultar ──────────────────────────────────────────────────────────────
+    @commands.command(name="insultar", aliases=["insulto"])
+    async def insultar(self, ctx: commands.Context, objetivo: discord.Member = None) -> None:
+        """Insulta a alguien con ingenio."""
+        if objetivo is None:
+            await ctx.send("❌ Menciona a alguien para insultar.")
+            return
+        if objetivo.bot:
+            await ctx.send("❌ Al bot no se le insulta. El bot os insulta a vosotros.")
+            return
+        if objetivo.id == ctx.author.id:
+            await ctx.send("❌ No te puedes insultar a ti mismo... bueno, puedes, pero qué triste.")
+            return
+
+        insultos = [
+            f"{objetivo.mention} tiene menos aura que una piedra. 🪨",
+            f"{objetivo.mention} es tan chopped que las plantas a su lado piden agua. 🌱",
+            f"{objetivo.mention} confundió una API con un refresco. 🥤",
+            f"{objetivo.mention} tiene el CI de una maceta. Y la maceta riega sola. 🪴",
+            f"{objetivo.mention} perdió contra un bot en piedra, papel o tijera. 🤡",
+            f"{objetivo.mention} usa Internet Explorer en Discord. 🐢",
+            f"{objetivo.mention} tiene menos dedos de Sukuna que Yuji al empezar. 0. 🥖",
+            f"{objetivo.mention} es la razón por la que pusieron tutoriales en los videojuegos. 📖",
+        ]
+        await ctx.send(random.choice(insultos))
+
+    # ── Felicitar ─────────────────────────────────────────────────────────────
+    @commands.command(name="felicitar", aliases=["feli", "felicitacion"])
+    async def felicitar(self, ctx: commands.Context, objetivo: discord.Member = None) -> None:
+        """Felicita a alguien con cariño."""
+        if objetivo is None:
+            objetivo = ctx.author
+
+        felicitaciones = [
+            f"{objetivo.mention} es tan guay que hasta Sukuna aplaudiría. 👏",
+            f"{objetivo.mention} tiene más brillo que un Black Flash. ⚡",
+            f"{objetivo.mention} es la definición de main character. 🎬",
+            f"{objetivo.mention} hoy está imparable. Y eso mola. 🚀",
+            f"{objetivo.mention} tiene más aura que todo el server junto. 🔥",
+            f"{objetivo.mention} simplemente lo petas, no hay más. 🏆",
+            f"{objetivo.mention} es el prota de esta temporada. 📺",
+            f"Si {objetivo.mention} fuera un hechicero, sería de grado especial. 🎌",
+        ]
+        await ctx.send(f"🌟 {random.choice(felicitaciones)}")
+
+    # ── Maldición ─────────────────────────────────────────────────────────────
+    @commands.command(name="maldicion", aliases=["mal", "maldice"])
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def maldicion(self, ctx: commands.Context, objetivo: discord.Member = None) -> None:
+        """Lanza una maldición temática de Jujutsu Kaisen."""
+        await self._bypass_cooldown(ctx)
+        if objetivo is None:
+            await ctx.send("❌ Menciona a alguien para maldecir.")
+            return
+        if objetivo.bot:
+            await ctx.send("❌ El bot es inmune a las maldiciones.")
+            return
+        if objetivo.id == ctx.author.id:
+            await ctx.send("❌ No te puedes maldecir a ti mismo... creo.")
+            return
+
+        maldiciones = [
+            f"{objetivo.mention} ha sido maldecido con energía maldita de nivel especial. 💀",
+            f"{objetivo.mention} ha caído bajo la **Expansión de Dominio** de {ctx.author.mention}. 🏮",
+            f"{objetivo.mention} ahora tiene una maldición de grado 1. Que se lo piense. 🎌",
+            f"{objetivo.mention} ha sido marcado por Sukuna. No hay escapatoria. 👹",
+            f"{objetivo.mention} ha recibido una maldición tan fuerte que hasta Mahito se asustaría. 😈",
+            f"La energía maldita de {ctx.author.mention} envuelve a {objetivo.mention}. **RIP**. ⚰️",
+            f"{objetivo.mention} acaba de ser maldecido. Su aura disminuye por el miedo. 📉",
+        ]
+
+        # Small aura penalty
+        perdida = random.randint(10, 30)
+        await self.aura_manager.modify_aura(str(objetivo.id), -perdida)
+
+        embed = discord.Embed(
+            title="👹 MALDICIÓN",
+            description=random.choice(maldiciones),
+            color=discord.Color.dark_purple(),
+        )
+        embed.add_field(name="💫 Aura perdida", value=f"**-{perdida} pts**", inline=True)
+        await ctx.send(embed=embed)
+
+
+    # ── Ritual ──────────────────────────────────────────────────────────────
+    @commands.command(name="ritual", aliases=["invocacion", "invocar"])
+    @commands.cooldown(1, 30, commands.BucketType.user)
+    async def ritual(self, ctx: commands.Context) -> None:
+        """Teto realiza un ritual misterioso con efectos aleatorios en tu aura."""
+        await self._bypass_cooldown(ctx)
+        await ctx.trigger_typing()
+        await asyncio.sleep(1)
+
+        efectos = [
+            ("🔥 **Ritual de Fuego**", random.randint(30, 80), "El espíritu del fuego te bendice con aura."),
+            ("🌊 **Ritual de Agua**", random.randint(20, 50), "Las aguas de la purificación fortalecen tu alma."),
+            ("🌪️ **Ritual de Viento**", random.randint(10, 40), "El viento susurra secretos que aumentan tu poder."),
+            ("🌍 **Ritual de Tierra**", random.randint(5, 30), "La tierra firme te da estabilidad y aura."),
+            ("💀 **Ritual de Maldición**", random.randint(-50, -10), "Algo salió mal... el ritual se volvió en tu contra."),
+            ("✨ **Ritual de Estrellas**", random.randint(40, 100), "Las estrellas se alinean a tu favor. ¡Aura masiva!"),
+            ("👻 **Ritual Vacío**", 0, "El ritual no tuvo efecto... o eso crees."),
+            ("🎭 **Ritual de la Dualidad**", random.choice([-30, 30]), "El equilibrio del universo se manifiesta."),
+            ("🏆 **Gran Ritual de Sukuna**", random.randint(50, 150), "¡Sukuna ha notado tu presencia! El aura fluye hacia ti."),
+            ("💔 **Ritual Quebrado**", random.randint(-80, -20), "El ritual se rompió. Has perdido aura en el proceso."),
+        ]
+
+        nombre, cantidad, desc = random.choice(efectos)
+        self.aura_manager.modify_aura(ctx.author.id, ctx.author.name, cantidad)
+
+        embed = discord.Embed(
+            title="🔮 Ritual de Teto",
+            description=f"{ctx.author.mention} ha realizado un ritual...\n\n**{nombre}**\n{desc}",
+            color=discord.Color.dark_purple()
+        )
+        if cantidad >= 0:
+            embed.add_field(name="✨ Aura obtenida", value=f"**+{cantidad} pts**", inline=True)
+        else:
+            embed.add_field(name="💫 Aura perdida", value=f"**{cantidad} pts**", inline=True)
+        embed.set_footer(text="🥖 Los espíritus han hablado.")
+        await ctx.send(embed=embed)
+
+
+    # ── Dedo (de Sukuna) ─────────────────────────────────────────────────────
+    @commands.command(name="dedo", aliases=["dedosukuna", "buscardedo"])
+    @commands.cooldown(1, 600, commands.BucketType.user)  # 10 min cooldown
+    async def dedo(self, ctx: commands.Context) -> None:
+        """Busca un dedo de Sukuna. ¡Colecciónalos todos!"""
+        await self._bypass_cooldown(ctx)
+
+        # Load current dedos data
+        dedos = _cargar_dedos()
+        uid = str(ctx.author.id)
+        user_dedos = dedos.get(uid, {"nombre": ctx.author.name, "cantidad": 0})
+
+        # 30% chance to find a finger
+        if random.random() < 0.3:
+            user_dedos["cantidad"] += 1
+            dedos[uid] = user_dedos
+            _guardar_dedos(dedos)
+
+            total = user_dedos["cantidad"]
+            embed = discord.Embed(
+                title="👆 ¡Has encontrado un dedo de Sukuna!",
+                description=f"{ctx.author.mention} ha encontrado un dedo maldito.\n"
+                            f"Ahora tienes **{total}** dedo{'s' if total != 1 else ''}.",
+                color=discord.Color.dark_red()
+            )
+
+            # A small aura bonus for finding a finger
+            bonus = random.randint(5, 15)
+            self.aura_manager.modify_aura(ctx.author.id, ctx.author.name, bonus)
+            embed.add_field(name="✨ Bonus de aura", value=f"+{bonus} pts por tu hallazgo", inline=False)
+
+            if total >= 20:
+                embed.set_footer(text="👑 ¡Estás más cerca de convertirte en el recipiente de Sukuna!")
+            else:
+                embed.set_footer(text=f"💀 Te faltan {20 - total} dedos para el poder absoluto.")
+        else:
+            embed = discord.Embed(
+                title="😔 No hubo suerte",
+                description=f"{ctx.author.mention} buscó pero no encontró ningún dedo de Sukuna...\n"
+                            f"¡Sigue intentándolo!",
+                color=discord.Color.dark_grey()
+            )
+            embed.set_footer(text="🦊 Los dedos de Sukuna son difíciles de encontrar.")
+
+        await ctx.send(embed=embed)
+
+
+    # ── Sukuna (progreso) ────────────────────────────────────────────────────
+    @commands.command(name="sukuna", aliases=["dedos", "misdedos"])
+    async def sukuna_info(self, ctx: commands.Context) -> None:
+        """Muestra cuántos dedos de Sukuna has recolectado."""
+        dedos = _cargar_dedos()
+        uid = str(ctx.author.id)
+        user_dedos = dedos.get(uid, {"nombre": ctx.author.name, "cantidad": 0})
+        cantidad = user_dedos["cantidad"]
+
+        # Calculate progress bar
+        max_dedos = 20
+        progreso = min(cantidad, max_dedos)
+        barra = "🟥" * progreso + "⬛" * (max_dedos - progreso)
+
+        embed = discord.Embed(
+            title="👆 Dedos de Sukuna",
+            description=f"{ctx.author.mention}, has recolectado:",
+            color=discord.Color.dark_red()
+        )
+        embed.add_field(name="📊 Progreso", value=f"**{cantidad}** / **{max_dedos}** dedos\n{barra}", inline=False)
+
+        if cantidad == 0:
+            embed.add_field(name="💭", value="Aún no has encontrado ningún dedo. ¡Usa `dedo` para buscar!", inline=False)
+        elif cantidad < 5:
+            embed.add_field(name="🌱", value="Apenas estás comenzando tu viaje. Sigue buscando.", inline=False)
+        elif cantidad < 10:
+            embed.add_field(name="🔥", value="Vas tomando fuerza. Sukuna empieza a notarte.", inline=False)
+        elif cantidad < 15:
+            embed.add_field(name="⚡", value="Eres un recolector serio. El poder fluye en ti.", inline=False)
+        elif cantidad < 20:
+            embed.add_field(name="👑", value="¡Estás muy cerca del poder absoluto!", inline=False)
+        else:
+            embed.add_field(name="💀 ¡ERES EL RECIPIENTE!", value="¡Has alcanzado el poder máximo de Sukuna!", inline=False)
+
+        # Top 3 dedos
+        sorted_users = sorted(dedos.items(), key=lambda x: x[1]["cantidad"], reverse=True)[:3]
+        if sorted_users:
+            top_text = ""
+            for i, (uid_data, info) in enumerate(sorted_users, 1):
+                medal = ["🥇", "🥈", "🥉"][i - 1]
+                top_text += f"{medal} **{info['nombre']}** — {info['cantidad']} dedos\n"
+            embed.add_field(name="🏆 Top Recolectores", value=top_text, inline=False)
+
+        await ctx.send(embed=embed)
+
+
+    # ── Tienda ───────────────────────────────────────────────────────────────
+    @commands.command(name="tienda", aliases=["shop", "mercadillo"])
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def tienda(self, ctx: commands.Context) -> None:
+        """Muestra los objetos disponibles para comprar con aura."""
+        await self._bypass_cooldown(ctx)
+
+        embed = discord.Embed(
+            title="🛒 Tienda de Teto",
+            description="Compra objetos con tu aura usando `!comprar <código>`",
+            color=discord.Color.gold()
+        )
+
+        for item in TIENDA_ITEMS:
+            emoji = item.get("emoji", "📦")
+            embed.add_field(
+                name=f"{emoji} **{item['nombre']}** — `{item['id']}`",
+                value=f"💰 **{item['precio']}** aura — {item['descripcion']}",
+                inline=False
+            )
+
+        embed.set_footer(text="🥖 ¡Gasta con moderación!")
+        await ctx.send(embed=embed)
+
+
+    # ── Comprar ───────────────────────────────────────────────────────────────
+    @commands.command(name="comprar", aliases=["buy", "adquirir"])
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def comprar(self, ctx: commands.Context, *, item_id: str = None) -> None:
+        """Compra un objeto de la tienda con tu aura."""
+        await self._bypass_cooldown(ctx)
+
+        if not item_id:
+            await ctx.send("❌ Usa: `!comprar <código>`. Mira `!tienda` para ver los códigos.")
+            return
+
+        item_id = item_id.strip().lower()
+        item = next((i for i in TIENDA_ITEMS if i["id"] == item_id), None)
+
+        if not item:
+            await ctx.send(f"❌ El objeto `{item_id}` no existe. Usa `!tienda` para ver los disponibles.")
+            return
+
+        # Check if user has enough aura
+        aura_actual = self.aura_manager.get_aura(ctx.author.id)
+        precio = item["precio"]
+
+        if aura_actual < precio:
+            falta = precio - aura_actual
+            await ctx.send(f"❌ No tienes suficiente aura. Te faltan **{falta} pts** para comprar **{item['nombre']}**.")
+            return
+
+        # Deduct aura
+        self.aura_manager.modify_aura(ctx.author.id, ctx.author.name, -precio)
+
+        # Add to inventory
+        inventario = _cargar_inventario()
+        uid = str(ctx.author.id)
+        if uid not in inventario:
+            inventario[uid] = {"nombre": ctx.author.name, "items": []}
+        inventario[uid]["items"].append({
+            "id": item["id"],
+            "nombre": item["nombre"],
+            "fecha": time.strftime("%Y-%m-%d %H:%M:%S")
+        })
+        _guardar_inventario(inventario)
+
+        embed = discord.Embed(
+            title="✅ ¡Compra realizada!",
+            description=f"{ctx.author.mention} ha comprado **{item['nombre']}** por **{precio} aura**.\n"
+                        f"💰 Te quedan **{aura_actual - precio}** pts de aura.",
+            color=discord.Color.green()
+        )
+        embed.set_footer(text="🥖 ¡Disfruta de tu objeto!")
+        await ctx.send(embed=embed)
+
+
+    # ── Inventario ────────────────────────────────────────────────────────────
+    @commands.command(name="inventario", aliases=["inv", "bolsillo"])
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def inventario(self, ctx: commands.Context) -> None:
+        """Muestra los objetos que has comprado en la tienda."""
+        await self._bypass_cooldown(ctx)
+
+        inventario = _cargar_inventario()
+        uid = str(ctx.author.id)
+        user_inv = inventario.get(uid)
+
+        if not user_inv or not user_inv["items"]:
+            embed = discord.Embed(
+                title="🎒 Inventario vacío",
+                description=f"{ctx.author.mention} aún no tiene objetos.\n"
+                            f"Usa `!tienda` para ver qué puedes comprar.",
+                color=discord.Color.dark_grey()
+            )
+            await ctx.send(embed=embed)
+            return
+        
+        # Count items by type
+        item_counts = {}
+        for item in user_inv["items"]:
+            name = item["nombre"]
+            item_counts[name] = item_counts.get(name, 0) + 1
+
+        embed = discord.Embed(
+            title=f"🎒 Inventario de {ctx.author.display_name}",
+            description=f"Tienes **{len(user_inv['items'])}** objeto{'s' if len(user_inv['items']) != 1 else ''}:",
+            color=discord.Color.blue()
+        )
+
+        items_text = ""
+        for name, count in item_counts.items():
+            items_text += f"• **{name}** x{count}\n"
+        embed.add_field(name="📦 Objetos", value=items_text, inline=False)
+
+        # Show last 5 purchases
+        last_items = user_inv["items"][-5:]
+        last_items.reverse()
+        recent = "\n".join([f"• {i['nombre']} — {i.get('fecha', 'desconocida')}" for i in last_items])
+        embed.add_field(name="🕐 Últimas adquisiciones", value=recent, inline=False)
+
+        aura = self.aura_manager.get_aura(ctx.author.id)
+        embed.set_footer(text=f"🥖 Aura: {aura} pts | Sigue coleccionando")
+        await ctx.send(embed=embed)
+
+
+    # ── Decir ────────────────────────────────────────────────────────────────
+    @commands.command(name="decir", aliases=["say"])
+    async def decir(self, ctx: commands.Context, *, mensaje: str = None) -> None:
+        """[Admin] Teto dice algo por ti en el canal actual."""
+        if ctx.author.id != ADMIN_ID:
+            await ctx.send("❌ Solo el creador puede usar este comando.", delete_after=5)
+            return
+        if not mensaje:
+            await ctx.send("❌ Usa: `!decir <mensaje>`")
+            return
+        await ctx.message.delete()
+        await ctx.send(mensaje)
+
+
+    # ── DM ───────────────────────────────────────────────────────────────────
+    @commands.command(name="dm", aliases=["md", "mensajedirecto"])
+    async def dm_user(self, ctx: commands.Context, usuario: discord.Member = None, *, mensaje: str = None) -> None:
+        """[Admin] Envía un mensaje privado a un usuario."""
+        if ctx.author.id != ADMIN_ID:
+            await ctx.send("❌ Solo el creador puede usar este comando.", delete_after=5)
+            return
+        if not usuario or not mensaje:
+            await ctx.send("❌ Usa: `!dm @usuario <mensaje>`")
+            return
+        try:
+            embed = discord.Embed(
+                title="📩 Mensaje de Teto",
+                description=mensaje,
+                color=discord.Color.blurple()
+            )
+            embed.set_footer(text="🥖 Teto te ha enviado un mensaje")
+            await usuario.send(embed=embed)
+            await ctx.send(f"✅ Mensaje enviado a **{usuario.display_name}**.", delete_after=5)
+        except discord.Forbidden:
+            await ctx.send(f"❌ No pude enviar MD a **{usuario.display_name}**. Tiene los MDs cerrados.")
+        except Exception as e:
+            await ctx.send(f"❌ Error al enviar el mensaje: {e}")
+
+
+    # ── Anuncio ──────────────────────────────────────────────────────────────
+    @commands.command(name="anuncio", aliases=["announce", "avisar"])
+    async def anuncio(self, ctx: commands.Context, *, texto: str = None) -> None:
+        """[Admin] Envía un anuncio formateado al canal de anuncios."""
+        if ctx.author.id != ADMIN_ID:
+            await ctx.send("❌ Solo el creador puede usar este comando.", delete_after=5)
+            return
+        if not texto:
+            await ctx.send("❌ Usa: `!anuncio <texto>`")
+            return
+
+        canal_anuncios = ctx.guild.get_channel(CANAL_ANUNCIOS_ID) if CANAL_ANUNCIOS_ID else None
+        if not canal_anuncios:
+            await ctx.send("❌ No se ha configurado un canal de anuncios (CANAL_ANUNCIOS_ID).")
+            return
+
+        embed = discord.Embed(
+            title="📢 ¡Atención!",
+            description=texto,
+            color=discord.Color.gold(),
+            timestamp=discord.utils.utcnow()
+        )
+        embed.set_footer(text="Anuncio oficial • Teto")
+        await canal_anuncios.send(embed=embed)
+        await ctx.send(f"✅ Anuncio enviado a {canal_anuncios.mention}.", delete_after=5)
+
+
+    # ── Giveaura ─────────────────────────────────────────────────────────────
+    @commands.command(name="giveaura", aliases=["daraura", "regalaraura"])
+    async def giveaura(self, ctx: commands.Context, usuario: discord.Member = None, cantidad: int = None) -> None:
+        """[Admin] Da o quita aura a un usuario."""
+        if ctx.author.id != ADMIN_ID:
+            await ctx.send("❌ Solo el creador puede usar este comando.", delete_after=5)
+            return
+        if not usuario or cantidad is None:
+            await ctx.send("❌ Usa: `!giveaura @usuario <cantidad>` (negativo para quitar)")
+            return
+
+        self.aura_manager.modify_aura(usuario.id, usuario.name, cantidad)
+        new_aura = self.aura_manager.get_aura(usuario.id)
+
+        emoji = "➕" if cantidad >= 0 else "➖"
+        embed = discord.Embed(
+            title=f"{emoji} Aura ajustada",
+            description=f"**{usuario.mention}** recibió **{cantidad:+d}** pts de aura.\n"
+                        f"📊 Ahora tiene **{new_aura}** pts.",
+            color=discord.Color.green() if cantidad >= 0 else discord.Color.red()
+        )
+        await ctx.send(embed=embed)
+
+
+    # ── Say (canal específico) ───────────────────────────────────────────────
+    @commands.command(name="saycanal", aliases=["hablar", "deciren"])
+    async def say_canal(self, ctx: commands.Context, canal: discord.TextChannel = None, *, mensaje: str = None) -> None:
+        """[Admin] Teto habla en un canal específico."""
+        if ctx.author.id != ADMIN_ID:
+            await ctx.send("❌ Solo el creador puede usar este comando.", delete_after=5)
+            return
+        if not canal or not mensaje:
+            await ctx.send("❌ Usa: `!saycanal #canal <mensaje>`")
+            return
+        try:
+            await canal.send(mensaje)
+            await ctx.send(f"✅ Mensaje enviado a {canal.mention}.", delete_after=5)
+        except Exception as e:
+            await ctx.send(f"❌ Error: {e}")
+
+
+    # ── Backup ───────────────────────────────────────────────────────────────
+    @commands.command(name="backup", aliases=["exportar", "respaldar"])
+    async def backup_data(self, ctx: commands.Context) -> None:
+        """[Admin] Exporta todos los datos del bot."""
+        if ctx.author.id != ADMIN_ID:
+            await ctx.send("❌ Solo el creador puede usar este comando.", delete_after=5)
+            return
+
+        await ctx.send("⏳ Generando respaldo...")
+
+        data = {
+            "fecha": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "servidor": ctx.guild.name if ctx.guild else "Desconocido",
+            "miembros": ctx.guild.member_count if ctx.guild else 0,
+            "aura": {},
+            "dedos": {},
+            "inventario": {},
+        }
+
+        try:
+            with open(AURA_DATA_PATH, "r", encoding="utf-8") as f:
+                data["aura"] = json.load(f)
+        except:
+            data["aura"] = {"error": "No se pudo leer"}
+
+        dedos = _cargar_dedos()
+        data["dedos"] = dedos
+
+        inv = _cargar_inventario()
+        data["inventario"] = inv
+
+        backup_dir = Path("backups")
+        backup_dir.mkdir(exist_ok=True)
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        backup_path = backup_dir / f"teto_backup_{timestamp}.json"
+
+        with open(backup_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+
+        embed = discord.Embed(
+            title="💾 Backup completado",
+            description=f"Todos los datos han sido exportados.",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="📁 Archivo", value=f"`{backup_path.name}`", inline=True)
+        embed.add_field(name="📦 Tamaño", value=f"{backup_path.stat().st_size / 1024:.1f} KB", inline=True)
+        await ctx.send(embed=embed)
 
 
 async def setup(bot: commands.Bot) -> None:
