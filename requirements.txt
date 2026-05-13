@@ -1,4 +1,5 @@
-discord.py>=2.0.0
-python-dotenv
-flask
-pytz
+discord.py>=2.0.0,<3.0.0
+python-dotenv>=1.0.0,<2.0.0
+flask>=3.0.0,<4.0.0
+pytz>=2023.3
+groq>=0.12.0,<1.0.0
