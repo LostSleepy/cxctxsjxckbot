@@ -1201,7 +1201,7 @@ class Extras(commands.Cog):
             emoji = item.get("emoji", "📦")
             embed.add_field(
                 name=f"{emoji} **{item['nombre']}** — `{item['id']}`",
-                value=f"💰 **{item['precio']}** aura — {item['descripcion']}",
+                value=f"💰 **{item['precio']}** aura — {item['desc']}",
                 inline=False
             )
 
