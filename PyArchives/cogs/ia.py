@@ -467,10 +467,29 @@ class IA(commands.Cog):
         await self._handle_ai_command(ctx, "titulo", tema)
 
     @commands.command(name="shipp")
-    async def shipp(self, ctx: commands.Context, usuario1: discord.Member, usuario2: Optional[discord.Member] = None) -> None:
-        """💘 Genera un nombre de ship y descripción entre dos usuarios."""
-        usuario2 = usuario2 or ctx.author
-        input_text = f"{usuario1.display_name} y {usuario2.display_name}"
+    async def shipp(
+        self,
+        ctx: commands.Context,
+        usuario1: Optional[discord.Member] = None,
+        *,
+        nombres: Optional[str] = None,
+    ) -> None:
+        """💘 Genera un nombre de ship y descripción entre dos usuarios.
+        Uso: cx!shipp @user1 @user2  o  cx!shipp nombre1 nombre2"""
+        if usuario1:
+            # Mention mode: @user1 @user2 or @user1
+            usuario2 = None
+            if len(ctx.message.mentions) >= 2:
+                usuario2 = ctx.message.mentions[1]
+            else:
+                usuario2 = ctx.author
+            input_text = f"{usuario1.display_name} y {usuario2.display_name}"
+        elif nombres:
+            # Text mode: "nombre1 y nombre2" or just "nombre1"
+            input_text = nombres
+        else:
+            await ctx.send("❌ Uso: `cx!shipp @user1 @user2` o `cx!shipp nombre1 y nombre2`")
+            return
         await self._handle_ai_command(ctx, "shipp", input_text)
 
     # ── New Commands: Utility & Knowledge ────────────────────────────────────

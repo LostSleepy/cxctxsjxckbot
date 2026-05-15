@@ -490,30 +490,42 @@ class Utilidad(commands.Cog):
             inline=False,
         )
         embed.add_field(
-            name="🤖 Comandos IA",
+            name="🤖 IA — Chat & Creatividad",
             value=(
-                "`teto` — Habla con Teto (IA libre)\n"
+                "`chat` — Habla con Teto (IA libre)\n"
                 "`frase` — Cita ingeniosa sobre un tema\n"
                 "`idea` — Idea aleatoria creativa\n"
-                "`excusa` — Excusa absurda\n"
-                "`inspirar` `inspo` — Frase 'inspiradora' de parodia\n"
-                "`traducir` `trad` — Traduce texto\n"
-                "`resumir` `resumen` — Resume texto\n"
-                "`citaanime` `cita` — Cita de anime random\n"
+                "`citaanime` — Cita de anime random\n"
                 "`chiste` — Chiste malo/absurdo\n"
-                "`cuento` — Microcuento de 3 frases\n"
                 "`poema` — Poema corto sobre un tema\n"
+                "`cuento` — Microcuento de 3 frases\n"
                 "`nick` — 3 apodos a partir de un nombre\n"
-                "`titulo` — Título de peli/serie inventado\n"
-                "`shipp` — Ship name y descripción IA\n"
+                "`titulo` — Título de peli inventado\n"
+                "`excusa` — Excusa absurda\n"
+                "`inspirar` — Frase 'inspiradora' de parodia"
+            ),
+            inline=False,
+        )
+        embed.add_field(
+            name="🤖 IA — Utilidad & Social",
+            value=(
+                "`traducir` — Traduce texto\n"
+                "`resumir` — Resume texto\n"
                 "`definir` — Definición creativa de palabra\n"
                 "`sinonimo` — Sinónimos rebuscados\n"
+                "`explica` — Explica concepto simple\n"
                 "`tipoprogramacion` — Tip de programación\n"
                 "`curiosidad` — Dato curioso fascinante\n"
                 "`toplista` — Top N sobre un tema\n"
-                "`explica` — Explica concepto simple\n"
+                "`shipp` — Ship name entre dos usuarios\n"
                 "`insulto` — Insulto creativo (broma)\n"
-                "`cumplido` — Cumplido épico\n"
+                "`cumplido` — Cumplido épico"
+            ),
+            inline=False,
+        )
+        embed.add_field(
+            name="🤖 IA — Juegos & Meta",
+            value=(
                 "`horoscopo` — Horóscopo inventado\n"
                 "`futuro` — Predicción absurda\n"
                 "`consejo` — Consejo de vida pésimo\n"

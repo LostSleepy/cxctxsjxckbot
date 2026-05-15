@@ -123,7 +123,8 @@ async def random_klipy() -> Optional[str]:
 async def get_giphy_gif(query: str) -> str:
     """
     Get a GIF URL based on a text query.
-    Tries Klipy API first, falls back to local library.
+    Uses the curated fallback library for known anime/JJK categories,
+    and falls back to Klipy API only for unknown queries.
 
     Args:
         query: Keywords like "hola", "black flash", "domain expansion".
@@ -133,48 +134,42 @@ async def get_giphy_gif(query: str) -> str:
     """
     q = query.lower()
 
-    # Map common queries to categories
-    category_map = {
+    # ── Known categories: use curated fallback (anime/JJK content) ──
+    known_categories = {
         "hola": "hola",
         "hello": "hola",
         "black flash": "bf",
         "bf": "bf",
         "domain expansion": "de",
         "de": "de",
+        "alaba": "alaba",
+        "glaze": "alaba",
+        "me": "me",
+        "teto": "me",
     }
 
-    # Determine search terms for the API
-    if "hello" in q or "hola" in q:
-        search_term = "anime wave hi"
-        category = "hola"
-    elif "black flash" in q:
-        search_term = "jujutsu kaisen black flash"
-        category = "bf"
-    elif "domain" in q or "expansion" in q:
-        search_term = "jujutsu kaisen domain"
-        category = "de"
-    elif "alaba" in q or "glaze" in q or "royal" in q or "praise" in q:
-        search_term = "praise anime"
-        category = "alaba"
-    elif "sparkle" in q:
-        search_term = "anime sparkle"
-        category = "alaba"
-    elif "me" in q or "teto" in q:
-        search_term = "anime cute girl"
-        category = "me"
-    else:
-        # Try the raw query as search term
-        search_term = q
-        category = "emergencia"
+    # Direct match for known short queries
+    if q in known_categories:
+        return _get_fallback(known_categories[q])
 
-    # Try Klipy API first
-    gif_url = await search_klipy(search_term)
+    # Check if the query contains keywords for known categories
+    if "hello" in q or "hola" in q:
+        return _get_fallback("hola")
+    if "black flash" in q or "flash" in q:
+        return _get_fallback("bf")
+    if "domain" in q or "expansion" in q or "dominio" in q:
+        return _get_fallback("de")
+    if "alaba" in q or "glaze" in q or "praise" in q or "cumplido" in q:
+        return _get_fallback("alaba")
+    if "me" in q or "teto" in q:
+        return _get_fallback("me")
+
+    # ── Unknown query: try Klipy API, then emergency fallback ──
+    gif_url = await search_klipy(q)
     if gif_url:
         return gif_url
 
-    # Fallback to local library
-    log.info("Klipy API returned no results for '%s', using fallback", search_term)
-    return _get_fallback(category)
+    return _get_fallback("emergencia")
 
 
 async def get_aura_gif(points: int) -> str:
