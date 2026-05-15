@@ -28,69 +28,69 @@ All AI commands must be invoked explicitly — the AI **never responds automatic
 
 | Command | Aliases | Description |
 |---|---|---|
-| `cx!chat <message>` | `conversar` | Chat with Teto's unique personality |
-| `cx!frase <topic>` | — | Generate a clever quote or phrase about a topic |
-| `cx!idea` | — | Random creative original idea |
-| `cx!inspirar` | `inspo`, `motivar` | Parody "inspirational" LinkedIn/Instagram quote |
-| `cx!excusa [reason]` | — | Generate an absurd creative excuse |
-| `cx!debate` | `discute`, `preguntai` | Hypothetical question for absurd debate |
+| `cx!chat <message>` | `conversar` | Chat with Teto (free AI) |
+| `cx!frase <topic>` | — | Quote or phrase about a topic |
+| `cx!idea` | — | Idea on a topic |
+| `cx!inspirar` | `inspo`, `motivar` | Inspirational quote |
+| `cx!excusa [reason]` | — | Creative excuse |
+| `cx!debate` | `discute`, `preguntai` | Hypothetical question to debate |
 
 ### 🎨 Creativity
 
 | Command | Aliases | Description |
 |---|---|---|
-| `cx!chiste [topic]` | — | Bad/absurd joke about a topic |
+| `cx!chiste [topic]` | — | Joke about a topic |
 | `cx!poema <topic>` | — | Short 2-3 verse poem |
 | `cx!cuento [topic]` | — | Micro-story in 3 sentences |
-| `cx!citaanime` | `animequote` | Random anime quote with character name |
-| `cx!nick <name>` | — | 3 epic/funny nicknames from a name |
+| `cx!citaanime` | `animequote` | Anime quote with character name |
+| `cx!nick <name>` | — | 3 nicknames from a name |
 | `cx!titulo <topic>` | — | Invented movie/series title with genre |
-| `cx!escenario [context]` | — | Crazy hypothetical scenario |
+| `cx!escenario [context]` | — | Hypothetical scenario |
 
 ### 💘 Social Interaction
 
 | Command | Aliases | Description |
 |---|---|---|
-| `cx!shipp @u1 @u2` | — | Ship name + description + % compatibility (AI) |
-| `cx!bromai @user` | `broma`, `insultoia` | Creative insult (friendly banter) |
-| `cx!halago @user` | `piropo`, `cumplidoia` | Epic memorable compliment (AI) |
-| `cx!retar @user` | `reto` | Launch an absurd challenge at someone |
-| `cx!futuro @user` | — | Absurd future prediction |
+| `cx!shipp @u1 @u2` | — | Ship name + description + % compatibility |
+| `cx!bromai @user` | `broma`, `insultoia` | Playful insult |
+| `cx!halago @user` | `piropo`, `cumplidoia` | Sincere compliment |
+| `cx!retar @user` | `reto` | Launch a challenge at someone |
+| `cx!futuro @user` | — | Future prediction |
 
 ### 🔮 Divination & Advice
 
 | Command | Aliases | Description |
 |---|---|---|
-| `cx!horoscopo [sign]` | `horo` | Made-up funny daily horoscope |
-| `cx!consejo [topic]` | — | Terribly bad life advice |
-| `cx!elige <opt1> o <opt2>` | — | AI chooses between options with a reason |
+| `cx!horoscopo [sign]` | `horo` | Horoscope for a sign |
+| `cx!consejo [topic]` | — | Useful advice |
+| `cx!elige <opt1> o <opt2>` | — | AI chooses between options |
 
 ### 📚 Utility & Knowledge
 
 | Command | Aliases | Description |
 |---|---|---|
-| `cx!traducir <text>` | `translate`, `trad` | Translate text (defaults to Spanish) |
-| `cx!resumir <text>` | `resumen`, `summary` | Summarize text in a few sentences |
-| `cx!definir <word>` | — | Creative and absurd definition of a word |
-| `cx!sinonimo <word>` | `sinonimos` | Overly elaborate fake synonyms |
-| `cx!explica <concept>` | — | Explain complex concepts simply |
+| `cx!traducir <text>` | `translate`, `trad` | Translate text |
+| `cx!resumir <text>` | `resumen`, `summary` | Summarize text |
+| `cx!definir <word>` | — | Real definition of a word |
+| `cx!sinonimo <word>` | `sinonimos` | Synonyms for a word |
+| `cx!explica <concept>` | — | Explain concept simply |
 | `cx!toplista <topic> [n]` | `toplist`, `rankia` | Top N list about a topic |
-| `cx!tipoprogramacion [topic]` | `devtip`, `prog` | Programming tip with humor |
-| `cx!curiosidad` | `dato` | Fascinating curious fact |
+| `cx!tipoprogramacion [topic]` | `devtip`, `prog` | Programming tip |
+| `cx!curiosidad` | `dato` | Curious fact |
 
 ### 🎮 Entertainment
 
 | Command | Aliases | Description |
 |---|---|---|
-| `cx!quehago` | `aburrido`, `hacer` | Suggests something to do when bored |
+| `cx!quehago` | `aburrido`, `hacer` | Suggests something to do |
 
 ### 🤖 Meta
 
 | Command | Aliases | Description |
 |---|---|---|
-| `cx!personalidad` | — | Teto describes herself (different every time) |
+| `cx!personalidad` | — | Teto describes herself |
 | `cx!version` | `versión` | Bot version and info |
-| `cx!error` | `fallo`, `panic` | Fake dramatic error message |
+| `cx!error` | `fallo`, `panic` | Fake system error |
 
 **Note:** Each command has its own tailored AI prompt. 3s cooldown between AI commands.
 

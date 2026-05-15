@@ -493,16 +493,16 @@ class Utilidad(commands.Cog):
             name="🤖 IA — Chat & Creatividad",
             value=(
                 "`chat` — Habla con Teto (IA libre)\n"
-                "`frase` — Cita ingeniosa sobre un tema\n"
-                "`idea` — Idea aleatoria creativa\n"
-                "`citaanime` — Cita de anime random\n"
-                "`chiste` — Chiste malo/absurdo\n"
+                "`frase` — Cita o frase sobre un tema\n"
+                "`idea` — Idea sobre un tema\n"
+                "`citaanime` — Cita de anime\n"
+                "`chiste` — Chiste sobre un tema\n"
                 "`poema` — Poema corto sobre un tema\n"
                 "`cuento` — Microcuento de 3 frases\n"
                 "`nick` — 3 apodos a partir de un nombre\n"
-                "`titulo` — Título de peli inventado\n"
-                "`excusa` — Excusa absurda\n"
-                "`inspirar` — Frase 'inspiradora' de parodia"
+                "`titulo` — Título de peli/serie inventado\n"
+                "`excusa` — Excusa creativa\n"
+                "`inspirar` — Frase de inspiración"
             ),
             inline=False,
         )
@@ -511,32 +511,32 @@ class Utilidad(commands.Cog):
             value=(
                 "`traducir` — Traduce texto\n"
                 "`resumir` — Resume texto\n"
-                "`definir` — Definición creativa de palabra\n"
-                "`sinonimo` — Sinónimos rebuscados\n"
-                "`explica` — Explica concepto simple\n"
+                "`definir` — Definición real de una palabra\n"
+                "`sinonimo` — Sinónimos de una palabra\n"
+                "`explica` — Explica concepto de forma simple\n"
                 "`tipoprogramacion` — Tip de programación\n"
-                "`curiosidad` — Dato curioso fascinante\n"
+                "`curiosidad` — Dato curioso\n"
                 "`toplista` — Top N sobre un tema\n"
                 "`shipp` — Ship name entre dos usuarios\n"
-                "`bromai` — Insulto creativo (broma)\n"
-                "`halago` — Cumplido épico"
+                "`bromai` — Insulto de broma\n"
+                "`halago` — Cumplido sincero"
             ),
             inline=False,
         )
         embed.add_field(
             name="🤖 IA — Juegos & Meta",
             value=(
-                "`horoscopo` — Horóscopo inventado\n"
-                "`futuro` — Predicción absurda\n"
-                "`consejo` — Consejo de vida pésimo\n"
-                "`debate` — Pregunta para debate absurdo\n"
-                "`retar` — Reto/desafío absurdo\n"
+                "`horoscopo` — Horóscopo para un signo\n"
+                "`futuro` — Predicción del futuro\n"
+                "`consejo` — Consejo útil\n"
+                "`debate` — Pregunta para debatir\n"
+                "`retar` — Reto para alguien\n"
                 "`elige` — IA elige entre opciones\n"
-                "`quehago` — Sugerencia anti-aburrimiento\n"
-                "`escenario` — Escenario hipotético loco\n"
+                "`quehago` — Sugerencia de qué hacer\n"
+                "`escenario` — Escenario hipotético\n"
                 "`personalidad` — Teto se describe\n"
                 "`version` — Versión e info del bot\n"
-                "`error` — Error falso dramático"
+                "`error` — Error falso del sistema"
             ),
             inline=False,
         )

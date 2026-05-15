@@ -28,69 +28,69 @@ Todos los comandos de IA se invocan explícitamente — la IA **nunca responde a
 
 | Comando | Aliases | Descripción |
 |---|---|---|
-| `cx!chat <mensaje>` | `conversar` | Habla con Teto (IA libre) con su personalidad única |
-| `cx!frase <tema>` | — | Genera una cita o frase ingeniosa sobre un tema |
-| `cx!idea` | — | Idea aleatoria creativa y original |
-| `cx!inspirar` | `inspo`, `motivar` | Frase "inspiradora" de parodia LinkedIn/Instagram |
-| `cx!excusa [motivo]` | — | Genera una excusa absurda y creativa |
-| `cx!debate` | `discute`, `preguntai` | Pregunta hipotética para debate absurdo |
+| `cx!chat <mensaje>` | `conversar` | Habla con Teto (IA libre) |
+| `cx!frase <tema>` | — | Cita o frase sobre un tema |
+| `cx!idea` | — | Idea sobre un tema |
+| `cx!inspirar` | `inspo`, `motivar` | Frase de inspiración |
+| `cx!excusa [motivo]` | — | Excusa creativa |
+| `cx!debate` | `discute`, `preguntai` | Pregunta hipotética para debatir |
 
 ### 🎨 Creatividad
 
 | Comando | Aliases | Descripción |
 |---|---|---|
-| `cx!chiste [tema]` | — | Chiste malo, absurdo o ingenioso |
+| `cx!chiste [tema]` | — | Chiste sobre un tema |
 | `cx!poema <tema>` | — | Poema corto de 2-3 versos |
 | `cx!cuento [tema]` | — | Microcuento de 3 frases |
-| `cx!citaanime` | `animequote` | Genera una cita aleatoria de anime con personaje |
-| `cx!nick <nombre>` | — | 3 apodos épicos o graciosos para un nombre |
-| `cx!titulo <tema>` | — | Título de película/serie inventado con género |
-| `cx!escenario [contexto]` | — | Escenario hipotético loco |
+| `cx!citaanime` | `animequote` | Cita de anime con personaje |
+| `cx!nick <nombre>` | — | 3 apodos a partir de un nombre |
+| `cx!titulo <tema>` | — | Título de peli/serie inventado con género |
+| `cx!escenario [contexto]` | — | Escenario hipotético |
 
 ### 💘 Interacción Social
 
 | Comando | Aliases | Descripción |
 |---|---|---|
-| `cx!shipp @u1 @u2` | — | Ship name + descripción + % de compatibilidad (IA) |
-| `cx!bromai @usuario` | `broma`, `insultoia` | Insulto creativo en tono de broma |
-| `cx!halago @usuario` | `piropo`, `cumplidoia` | Cumplido épico y memorable (IA) |
-| `cx!retar @usuario` | `reto` | Lanza un desafío absurdo a alguien |
-| `cx!futuro @usuario` | — | Predicción absurda del futuro |
+| `cx!shipp @u1 @u2` | — | Ship name + descripción + % de compatibilidad |
+| `cx!bromai @usuario` | `broma`, `insultoia` | Insulto de broma |
+| `cx!halago @usuario` | `piropo`, `cumplidoia` | Cumplido sincero |
+| `cx!retar @usuario` | `reto` | Lanza un reto a alguien |
+| `cx!futuro @usuario` | — | Predicción del futuro |
 
 ### 🔮 Adivinación & Consejos
 
 | Comando | Aliases | Descripción |
 |---|---|---|
-| `cx!horoscopo [signo]` | `horo` | Horóscopo del día inventado y gracioso |
-| `cx!consejo [tema]` | — | Consejo de vida terriblemente malo |
-| `cx!elige <op1> o <op2>` | — | La IA elige entre opciones con razón |
+| `cx!horoscopo [signo]` | `horo` | Horóscopo para un signo |
+| `cx!consejo [tema]` | — | Consejo útil |
+| `cx!elige <op1> o <op2>` | — | IA elige entre opciones |
 
 ### 📚 Utilidad & Conocimiento
 
 | Comando | Aliases | Descripción |
 |---|---|---|
-| `cx!traducir <texto>` | `translate`, `trad` | Traduce texto (por defecto al español) |
-| `cx!resumir <texto>` | `resumen`, `summary` | Resume un texto en pocas oraciones |
-| `cx!definir <palabra>` | — | Definición creativa y absurda de una palabra |
-| `cx!sinonimo <palabra>` | `sinonimos` | Sinónimos rebuscados y falsamente cultos |
-| `cx!explica <concepto>` | — | Explica un concepto complejo de forma simple |
+| `cx!traducir <texto>` | `translate`, `trad` | Traduce texto |
+| `cx!resumir <texto>` | `resumen`, `summary` | Resume un texto |
+| `cx!definir <palabra>` | — | Definición real de una palabra |
+| `cx!sinonimo <palabra>` | `sinonimos` | Sinónimos de una palabra |
+| `cx!explica <concepto>` | — | Explica concepto de forma simple |
 | `cx!toplista <tema> [n]` | `toplist`, `rankia` | Top N sobre un tema |
-| `cx!tipoprogramacion [tema]` | `devtip`, `prog` | Tip de programación con humor |
-| `cx!curiosidad` | `dato` | Dato curioso fascinante |
+| `cx!tipoprogramacion [tema]` | `devtip`, `prog` | Tip de programación |
+| `cx!curiosidad` | `dato` | Dato curioso |
 
 ### 🎮 Entretenimiento
 
 | Comando | Aliases | Descripción |
 |---|---|---|
-| `cx!quehago` | `aburrido`, `hacer` | Sugiere algo que hacer cuando estás aburrido |
+| `cx!quehago` | `aburrido`, `hacer` | Sugiere algo que hacer |
 
 ### 🤖 Meta
 
 | Comando | Aliases | Descripción |
 |---|---|---|
-| `cx!personalidad` | — | Teto se describe a sí misma (diferente cada vez) |
+| `cx!personalidad` | — | Teto se describe a sí misma |
 | `cx!version` | `versión` | Versión e información del bot |
-| `cx!error` | `fallo`, `panic` | Mensaje de error falso y dramático |
+| `cx!error` | `fallo`, `panic` | Error falso del sistema |
 
 **Nota:** Cada comando tiene un prompt de IA específico para su función. Cooldown de 3s entre comandos IA.
 
