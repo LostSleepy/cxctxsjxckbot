@@ -137,29 +137,6 @@ class AuraManager:
     # ── Static helpers ────────────────────────────────────────────────────────
 
     @staticmethod
-    def get_aura_gif(points: int) -> str:
-        """Return a GIF URL that matches the given aura tier."""
-        if points >= 3000:
-            return (
-                "https://static.klipy.com/ii/f87f46a2c5aeaeed4c68910815f73eaf"
-                "/04/ff/lx7cJhef.gif"
-            )
-        if points >= 1000:
-            return (
-                "https://static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4"
-                "/c5/36/Fn6Mwx5L.gif"
-            )
-        if points >= 0:
-            return (
-                "https://static.klipy.com/ii/35ccce3d852f7995dd2da910f2abd795"
-                "/83/1d/miXnBam8.gif"
-            )
-        return (
-            "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe"
-            "/a1/55/eMe2oFZQ3VtMfvGKEy.gif"
-        )
-
-    @staticmethod
     def get_aura_message(points: int) -> str:
         """Return a formatted message based on the aura tier."""
         if points >= 3000:

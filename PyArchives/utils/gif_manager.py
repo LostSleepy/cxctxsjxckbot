@@ -1,13 +1,22 @@
 """
 GIF manager for the Teto bot.
-Provides themed GIF URLs for various commands and events.
+Fetches GIFs from the Klipy API with a local fallback library.
 """
+import asyncio
+import logging
 import random
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
-# ── GIF Library ────────────────────────────────────────────────────────────────
+import aiohttp
 
-_GIF_LIBRARY: Dict[str, Union[List[str], str]] = {
+from config import KLIPY_API_KEY, KLIPY_BASE_URL
+
+log = logging.getLogger(__name__)
+
+# ── Fallback GIF Library ──────────────────────────────────────────────────────
+# Used when the Klipy API is unavailable or returns no results.
+
+_FALLBACK_GIFS: Dict[str, Union[List[str], str]] = {
     "hola": [
         "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/18/09/67F8rUksjWt5GloTV.gif",
         "https://static.klipy.com/ii/35ccce3d852f7995dd2da910f2abd795/ab/84/gNYgJb9x.gif",
@@ -38,12 +47,83 @@ _GIF_LIBRARY: Dict[str, Union[List[str], str]] = {
         "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe"
         "/a1/55/eMe2oFZQ3VtMfvGKEy.gif"
     ),
+    "alaba": [
+        "https://static.klipy.com/ii/35ccce3d852f7995dd2da910f2abd795/83/1d/miXnBam8.gif",
+        "https://static.klipy.com/ii/8ce8357c78ea940b9c2015daf05ce1a5/0a/c4/ZWB0q6ej.gif",
+    ],
+    "me": [
+        "https://i.pinimg.com/originals/63/91/26/639126a5ed46effc272235be01ad61e7.gif",
+    ],
 }
+
+
+def _get_fallback(category: str) -> str:
+    """Pick a random fallback GIF from the local library."""
+    pool = _FALLBACK_GIFS.get(category, _FALLBACK_GIFS["emergencia"])
+    if isinstance(pool, list) and pool:
+        return random.choice(pool)
+    return str(pool)
+
+
+async def _klipy_request(endpoint: str, params: Optional[Dict] = None) -> Optional[dict]:
+    """Make a request to the Klipy API and return parsed JSON, or None on failure."""
+    url = f"{KLIPY_BASE_URL}/{KLIPY_API_KEY}/{endpoint}"
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                if resp.status != 200:
+                    log.warning("Klipy API error %d for %s", resp.status, endpoint)
+                    return None
+                return await resp.json()
+    except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+        log.warning("Klipy API request failed: %s", e)
+        return None
+
+
+async def search_klipy(query: str, limit: int = 8) -> Optional[str]:
+    """
+    Search Klipy for a GIF matching the query.
+
+    Args:
+        query: Search term (e.g. "anime wave", "black flash").
+        limit: Number of results to fetch (default 8).
+
+    Returns:
+        URL of a random matching GIF, or None if no results.
+    """
+    data = await _klipy_request("search", {"q": query, "limit": limit})
+    if not data or not data.get("result"):
+        return None
+
+    results = data.get("data", {}).get("data", [])
+    if not results:
+        return None
+
+    # Pick a random result from the pool
+    chosen = random.choice(results)
+    gif_url = chosen.get("file", {}).get("gif")
+    if gif_url:
+        # Clean escaped slashes
+        gif_url = gif_url.replace("\\/", "/")
+    return gif_url
+
+
+async def random_klipy() -> Optional[str]:
+    """Fetch a completely random GIF from Klipy."""
+    data = await _klipy_request("random")
+    if not data or not data.get("result"):
+        return None
+
+    gif_url = data.get("data", {}).get("file", {}).get("gif")
+    if gif_url:
+        gif_url = gif_url.replace("\\/", "/")
+    return gif_url
 
 
 async def get_giphy_gif(query: str) -> str:
     """
-    Select a random GIF based on a text query.
+    Get a GIF URL based on a text query.
+    Tries Klipy API first, falls back to local library.
 
     Args:
         query: Keywords like "hola", "black flash", "domain expansion".
@@ -52,17 +132,93 @@ async def get_giphy_gif(query: str) -> str:
         URL of the selected GIF.
     """
     q = query.lower()
-    emergencia: str = _GIF_LIBRARY["emergencia"]  # type: ignore[assignment]
 
+    # Map common queries to categories
+    category_map = {
+        "hola": "hola",
+        "hello": "hola",
+        "black flash": "bf",
+        "bf": "bf",
+        "domain expansion": "de",
+        "de": "de",
+    }
+
+    # Determine search terms for the API
     if "hello" in q or "hola" in q:
-        pool = _GIF_LIBRARY.get("hola", [])
+        search_term = "anime wave hi"
+        category = "hola"
     elif "black flash" in q:
-        pool = _GIF_LIBRARY.get("bf", [])
+        search_term = "jujutsu kaisen black flash"
+        category = "bf"
     elif "domain" in q or "expansion" in q:
-        pool = _GIF_LIBRARY.get("de", [])
+        search_term = "jujutsu kaisen domain"
+        category = "de"
+    elif "alaba" in q or "glaze" in q or "royal" in q or "praise" in q:
+        search_term = "praise anime"
+        category = "alaba"
+    elif "sparkle" in q:
+        search_term = "anime sparkle"
+        category = "alaba"
+    elif "me" in q or "teto" in q:
+        search_term = "anime cute girl"
+        category = "me"
     else:
-        return emergencia
+        # Try the raw query as search term
+        search_term = q
+        category = "emergencia"
 
-    if isinstance(pool, list) and pool:
-        return random.choice(pool)
-    return emergencia
+    # Try Klipy API first
+    gif_url = await search_klipy(search_term)
+    if gif_url:
+        return gif_url
+
+    # Fallback to local library
+    log.info("Klipy API returned no results for '%s', using fallback", search_term)
+    return _get_fallback(category)
+
+
+async def get_aura_gif(points: int) -> str:
+    """
+    Return a GIF URL that matches the given aura tier.
+    Tries Klipy API first, falls back to local.
+
+    Args:
+        points: Aura score.
+
+    Returns:
+        GIF URL string.
+    """
+    if points >= 3000:
+        search_term = "anime aura solo leveling"
+    elif points >= 1000:
+        search_term = "anime aura solo leveling"
+    elif points >= 0:
+        search_term = "anime aura"
+    else:
+        search_term = "no aura"
+
+    # Try Klipy API
+    gif_url = await search_klipy(search_term)
+    if gif_url:
+        return gif_url
+
+    # Fallback to hardcoded tier GIFs
+    if points >= 3000:
+        return (
+            "https://static.klipy.com/ii/f87f46a2c5aeaeed4c68910815f73eaf"
+            "/04/ff/lx7cJhef.gif"
+        )
+    if points >= 1000:
+        return (
+            "https://static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4"
+            "/c5/36/Fn6Mwx5L.gif"
+        )
+    if points >= 0:
+        return (
+            "https://static.klipy.com/ii/35ccce3d852f7995dd2da910f2abd795"
+            "/83/1d/miXnBam8.gif"
+        )
+    return (
+        "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe"
+        "/a1/55/eMe2oFZQ3VtMfvGKEy.gif"
+    )

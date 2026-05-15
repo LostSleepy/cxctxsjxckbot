@@ -490,6 +490,45 @@ class Utilidad(commands.Cog):
             inline=False,
         )
         embed.add_field(
+            name="🤖 Comandos IA",
+            value=(
+                "`teto` — Habla con Teto (IA libre)\n"
+                "`frase` — Cita ingeniosa sobre un tema\n"
+                "`idea` — Idea aleatoria creativa\n"
+                "`excusa` — Excusa absurda\n"
+                "`inspirar` `inspo` — Frase 'inspiradora' de parodia\n"
+                "`traducir` `trad` — Traduce texto\n"
+                "`resumir` `resumen` — Resume texto\n"
+                "`citaanime` `cita` — Cita de anime random\n"
+                "`chiste` — Chiste malo/absurdo\n"
+                "`cuento` — Microcuento de 3 frases\n"
+                "`poema` — Poema corto sobre un tema\n"
+                "`nick` — 3 apodos a partir de un nombre\n"
+                "`titulo` — Título de peli/serie inventado\n"
+                "`shipp` — Ship name y descripción IA\n"
+                "`definir` — Definición creativa de palabra\n"
+                "`sinonimo` — Sinónimos rebuscados\n"
+                "`tipoprogramacion` — Tip de programación\n"
+                "`curiosidad` — Dato curioso fascinante\n"
+                "`toplista` — Top N sobre un tema\n"
+                "`explica` — Explica concepto simple\n"
+                "`insulto` — Insulto creativo (broma)\n"
+                "`cumplido` — Cumplido épico\n"
+                "`horoscopo` — Horóscopo inventado\n"
+                "`futuro` — Predicción absurda\n"
+                "`consejo` — Consejo de vida pésimo\n"
+                "`debate` — Pregunta para debate absurdo\n"
+                "`retar` — Reto/desafío absurdo\n"
+                "`elige` — IA elige entre opciones\n"
+                "`quehago` — Sugerencia anti-aburrimiento\n"
+                "`escenario` — Escenario hipotético loco\n"
+                "`personalidad` — Teto se describe\n"
+                "`version` — Versión e info del bot\n"
+                "`error` — Error falso dramático"
+            ),
+            inline=False,
+        )
+        embed.add_field(
             name="✨ Sistema de Aura",
             value=(
                 "`aura` — Consulta tu aura diaria\n"
@@ -519,7 +558,6 @@ class Utilidad(commands.Cog):
                 "`coinflip` `tirar` — Cara o cruz\n"
                 "`insultar` — Insulta a alguien con estilo\n"
                 "`felicitar` — Felicita a un usuario\n"
-                "`fraude` `fraud` — Fraud scan brainrot definitivo 🔍"
             ),
             inline=False,
         )

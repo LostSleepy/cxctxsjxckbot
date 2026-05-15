@@ -1,204 +1,264 @@
 <div align="center">
 
-# 🥖 Teto — Sukuna's Vessel
+# 🥖 Teto — El Recipiente de Sukuna
 
-> *"Baked with cursed energy. Deployed with questionable intent."*
+> *"Horneada con energía maldita. Desplegada con intenciones cuestionables."*
 
-**A multi-functional Discord bot inspired by Jujutsu Kaisen and Kasane Teto.**
-Moderation, entertainment, AI chat, intelligent voice monitoring, and a daily dose of chaos.
+**Un bot de Discord multifuncional inspirado en Jujutsu Kaisen y Kasane Teto.**
+Moderación, entretenimiento, chat con IA, monitoreo de voz inteligente y caos diario garantizado.
 
-[![Prefix](https://img.shields.io/badge/Prefix-cx!-ff69b4?style=for-the-badge&logo=discord&logoColor=white)](.)
+[![Prefijo](https://img.shields.io/badge/Prefijo-cx!-ff69b4?style=for-the-badge&logo=discord&logoColor=white)](.)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](.)
 [![discord.py](https://img.shields.io/badge/discord.py-2.x-5865F2?style=for-the-badge&logo=discord&logoColor=white)](.)
 
 ---
 
-🇪🇸 [Versión en Español](README_es.md)
+🇬🇧 [English Version](README_EN.md)
 
 </div>
 
 ---
 
-## 🤖 AI Chat
+## 🤖 Comandos IA
 
-Teto uses **Groq AI (Llama 3.1 8B)** to respond naturally in Spanish. She has memory of recent messages and adapts her personality dynamically.
+Teto usa **Groq AI (Llama 3.1 8B)** para responder con inteligencia natural en español.
+Todos los comandos de IA se invocan explícitamente — la IA **nunca responde automáticamente** a menciones.
 
-| Trigger | Description |
-|---|---|
-| `@Teto <message>` | Mention the bot to start a conversation |
-| Mentions of **Sleepy** (admin) | Teto automatically defends @Sleepy when mentioned by others |
-| Cooldown | 8s per user (bypassed for admin) |
+### 💬 Chat & Frases
 
-**Features:**
-- Context-aware: remembers the last 15 messages (up to 2000 chars)
-- Automatic personality adaptation based on conversation tone
-- Dynamic system prompt based on server context
+| Comando | Aliases | Descripción |
+|---|---|---|
+| `cx!chat <mensaje>` | `conversar`, `hablar` | Habla con Teto (IA libre) con su personalidad única |
+| `cx!frase <tema>` | — | Genera una cita o frase ingeniosa sobre un tema |
+| `cx!idea` | — | Idea aleatoria creativa y original |
+| `cx!inspirar` | `inspo`, `motivar` | Frase "inspiradora" de parodia LinkedIn/Instagram |
+| `cx!excusa [motivo]` | — | Genera una excusa absurda y creativa |
+| `cx!debate` | `discute`, `preguntai` | Pregunta hipotética para debate absurdo |
+
+### 🎨 Creatividad
+
+| Comando | Aliases | Descripción |
+|---|---|---|
+| `cx!chiste [tema]` | — | Chiste malo, absurdo o ingenioso |
+| `cx!poema <tema>` | — | Poema corto de 2-3 versos |
+| `cx!cuento [tema]` | — | Microcuento de 3 frases |
+| `cx!citaanime` | `cita`, `animequote` | Genera una cita aleatoria de anime con personaje |
+| `cx!nick <nombre>` | — | 3 apodos épicos o graciosos para un nombre |
+| `cx!titulo <tema>` | — | Título de película/serie inventado con género |
+| `cx!escenario [contexto]` | — | Escenario hipotético loco |
+
+### 💘 Interacción Social
+
+| Comando | Aliases | Descripción |
+|---|---|---|
+| `cx!shipp @u1 @u2` | — | Ship name + descripción + % de compatibilidad (IA) |
+| `cx!insulto @usuario` | — | Insulto creativo en tono de broma |
+| `cx!cumplido @usuario` | — | Cumplido épico y memorable |
+| `cx!retar @usuario` | `reto` | Lanza un desafío absurdo a alguien |
+| `cx!futuro @usuario` | — | Predicción absurda del futuro |
+
+### 🔮 Adivinación & Consejos
+
+| Comando | Aliases | Descripción |
+|---|---|---|
+| `cx!horoscopo [signo]` | `horo` | Horóscopo del día inventado y gracioso |
+| `cx!consejo [tema]` | — | Consejo de vida terriblemente malo |
+| `cx!elige <op1> o <op2>` | — | La IA elige entre opciones con razón |
+
+### 📚 Utilidad & Conocimiento
+
+| Comando | Aliases | Descripción |
+|---|---|---|
+| `cx!traducir <texto>` | `translate`, `trad` | Traduce texto (por defecto al español) |
+| `cx!resumir <texto>` | `resumen`, `summary` | Resume un texto en pocas oraciones |
+| `cx!definir <palabra>` | — | Definición creativa y absurda de una palabra |
+| `cx!sinonimo <palabra>` | `sinonimos` | Sinónimos rebuscados y falsamente cultos |
+| `cx!explica <concepto>` | — | Explica un concepto complejo de forma simple |
+| `cx!toplista <tema> [n]` | `toplist`, `rankia` | Top N sobre un tema |
+| `cx!tipoprogramacion [tema]` | `devtip`, `prog` | Tip de programación con humor |
+| `cx!curiosidad` | `dato` | Dato curioso fascinante |
+
+### 🎮 Entretenimiento
+
+| Comando | Aliases | Descripción |
+|---|---|---|
+| `cx!quehago` | `aburrido`, `hacer` | Sugiere algo que hacer cuando estás aburrido |
+
+### 🤖 Meta
+
+| Comando | Aliases | Descripción |
+|---|---|---|
+| `cx!personalidad` | — | Teto se describe a sí misma (diferente cada vez) |
+| `cx!version` | `versión`, `info` | Versión e información del bot |
+| `cx!error` | `fallo`, `panic` | Mensaje de error falso y dramático |
+
+**Nota:** Cada comando tiene un prompt de IA específico para su función. Cooldown de 3s entre comandos IA.
 
 ---
 
-## 🥖 Utility
+## 🥖 Utilidad
 
-| Command | Aliases | Description |
+| Comando | Aliases | Descripción |
 |---|---|---|
-| `cx!help` | — | Show the command panel |
-| `cx!ping` | — | Check bot latency and API response time |
-| `cx!uptime` | — | Show how long the bot has been running |
-| `cx!avatar [@user]` | `av` | View any member's profile picture in high resolution |
-| `cx!userinfo [@user]` | `user`, `info`, `u` | Detailed user stats: roles, join date, account age |
-| `cx!aleatorio` | `azar`, `random_user` | Pick a random server member |
-| `cx!elegir [a, b, ...]` | — | Can't decide? Let Teto choose for you |
-| `cx!8ball [question]` | `pregunta`, `ball` | Consult the mystical 8ball about your fate |
-| `cx!hora` | — | World clock — Madrid, New York, and Japan |
-| `cx!ship @u1 [@u2]` | — | Calculate love compatibility between two users |
+| `cx!help` | — | Muestra el panel de comandos |
+| `cx!ping` | — | Latencia del bot y tiempo de respuesta de la API |
+| `cx!uptime` | — | Cuánto tiempo lleva Teto despierta |
+| `cx!avatar [@usuario]` | `av` | Foto de perfil de cualquier miembro en alta resolución |
+| `cx!userinfo [@usuario]` | `user`, `info`, `u` | Estadísticas detalladas: roles, fecha de unión, antigüedad |
+| `cx!aleatorio` | `azar`, `random_user` | Elige un miembro aleatorio del servidor |
+| `cx!elegir [a, b, ...]` | — | ¿No puedes decidir? Deja que Teto elija por ti |
+| `cx!8ball [pregunta]` | `pregunta`, `ball` | Consulta tu destino con la mística bola 8 |
+| `cx!hora` | — | Reloj mundial — Madrid, Nueva York y Japón |
+| `cx!ship @u1 [@u2]` | — | Calcula la compatibilidad amorosa entre dos usuarios |
 | `cx!teto` | — | 🥖 |
-| `cx!servidor` | `server`, `serverinfo`, `guild`, `guildinfo` | Full server info: members, channels, boosts, owner |
-| `cx!rol [@role]` | `role`, `roleinfo`, `rolinfo` | Detailed role info: color, members, position |
-| `cx!emoji [:emoji:]` | `agrandar`, `jumbo`, `emojigrande` | View a custom server emoji in large size |
-| `cx!encuesta [question]` | `votacion`, `poll` | Create a poll with ✅/❌ reactions |
+| `cx!servidor` | `server`, `serverinfo`, `guild`, `guildinfo` | Info completa del servidor |
+| `cx!rol [@rol]` | `role`, `roleinfo`, `rolinfo` | Info detallada de un rol |
+| `cx!emoji [:emoji:]` | `agrandar`, `jumbo`, `emojigrande` | Muestra un emoji personalizado del servidor en grande |
+| `cx!encuesta [pregunta]` | `votacion`, `poll` | Crea una votación con reacciones ✅/❌ |
 
 ---
 
-## ✨ Aura System
+## ✨ Sistema de Aura
 
-Your daily aura score resets every 24 hours with a new random value (-1000 to 5000).
+Tu puntuación de aura diaria se reinicia cada 24 horas con un nuevo valor aleatorio (-1000 a 5000).
 
-| Command | Aliases | Description |
+| Comando | Aliases | Descripción |
 |---|---|---|
-| `cx!aura [@user]` | — | Check your (or someone else's) daily aura score |
-| `cx!top` | `ranking`, `leaderboard` | Show the server's aura ranking (top 10) |
-| `cx!da @user` | `dueloaura` | Aura duel: winner gets +50, loser gets -100 |
-| `cx!robar @user` | `rob` | Attempt to steal aura (50% success rate) |
-| `cx!picha [@user]` | `pp` | Scientific measurement. Results vary daily. |
-| `cx!vc @user` | `votochopped` | Vote to chopped someone (3 votes = 5min timeout) |
-| `cx!choppeddaily` | `cd`, `chopped`, `dailychopped` | Pick a random member and publicly declare them chopped |
+| `cx!aura [@usuario]` | — | Consulta tu aura del día (o la de otro) |
+| `cx!top` | `ranking`, `leaderboard` | Top 10 de aura del servidor |
+| `cx!da @usuario` | `dueloaura` | Duelo de aura: ganador +50, perdedor -100 |
+| `cx!robar @usuario` | `rob` | Intenta robar aura (50% de probabilidad) |
+| `cx!picha [@usuario]` | `pp` | Medición científica. Los resultados varían a diario. |
+| `cx!vc @usuario` | `votochopped` | Vota para hacer chopped a alguien (3 votos = 5min de timeout) |
+| `cx!choppeddaily` | `cd`, `chopped`, `dailychopped` | Elige un miembro aleatorio y lo declara chopped públicamente |
 
-### 🛡️ Tips
-- Having **✨ glow** in your inventory makes your name sparkle in the ranking
-- Use **🛡️ shield** to protect against robberies
-- Use **🚀 boost** to double your next aura roll
+### 🛡️ Consejos
+- Tener **✨ glow** en tu inventario hace que tu nombre brille en el ranking
+- Usa **🛡️ shield** para protegerte de robos
+- Usa **🚀 boost** para duplicar tu próxima tirada de aura
 
 ---
 
 ## 🎭 Jujutsu Kaisen
 
-| Command | Aliases | Description |
+| Comando | Aliases | Descripción |
 |---|---|---|
-| `cx!de @user` | `dominio` | Execute a Domain Expansion on a target |
-| `cx!bf @user` | `blackflash` | Launch a Black Flash (5% chance to double aura) |
-| `cx!ritual` | `invocacion`, `invocar` | Random ritual with 10 possible effects on your aura |
-| `cx!dedo` | `dedosukuna`, `buscardedo` | Search for a Sukuna finger (30% chance, 10min cooldown) |
-| `cx!sukuna` | `dedos`, `misdedos` | Check your Sukuna finger collection |
-| `cx!maldicion @user` | `mal`, `maldice` | Curse someone with Jujutsu Kaisen themed curses |
-| `cx!alaba [@user]` | `glaze`, `alabanza`, `cumplido` | Teto praises someone with an epic compliment |
+| `cx!de @usuario` | `dominio` | Ejecuta una Expansión de Dominio sobre un objetivo |
+| `cx!bf @usuario` | `blackflash` | Lanza un Destello Negro (5% de probabilidad de duplicar aura) |
+| `cx!ritual` | `invocacion`, `invocar` | Ritual aleatorio con 10 efectos posibles en tu aura |
+| `cx!dedo` | `dedosukuna`, `buscardedo` | Busca un dedo de Sukuna (30% de probabilidad, 10min de cooldown) |
+| `cx!sukuna` | `dedos`, `misdedos` | Revisa tu colección de dedos de Sukuna |
+| `cx!maldicion @usuario` | `mal`, `maldice` | Maldice a alguien con maldiciones temáticas de Jujutsu Kaisen |
+| `cx!alaba [@usuario]` | `glaze`, `alabanza`, `cumplido` | Teto halaga a alguien con un cumplido épico |
 
-### 💀 Sukuna Fingers
-Collect all **20 fingers** to become the **King of Curses**. Track your progress with `cx!sukuna` and see the top 3 collectors in the server.
+### 💀 Dedos de Sukuna
+Colecciona los **20 dedos** para convertirte en el **Rey de las Maldiciones**. Sigue tu progreso con `cx!sukuna` y mira el top 3 de coleccionistas del servidor.
 
 ---
 
-## 🛒 Shop & Items
+## 🛒 Tienda y Objetos
 
-Buy items with aura and use them for special effects.
+Compra objetos con aura y úsalos para efectos especiales.
 
-| Command | Aliases | Description |
+| Comando | Aliases | Descripción |
 |---|---|---|
-| `cx!tienda` | `shop`, `mercadillo` | Browse available items |
-| `cx!comprar <item>` | `buy`, `adquirir` | Purchase an item with your aura |
-| `cx!inventario` | `inv`, `bolsillo` | View your purchased items |
-| `cx!usar <item>` | — | Use an item from your inventory |
+| `cx!tienda` | `shop`, `mercadillo` | Explora los objetos disponibles |
+| `cx!comprar <item>` | `buy`, `adquirir` | Compra un objeto con tu aura |
+| `cx!inventario` | `inv`, `bolsillo` | Revisa tus objetos comprados |
+| `cx!usar <item>` | — | Usa un objeto de tu inventario |
 
-### Available Items
+### Objetos Disponibles
 
-| Item | ID | Price | Effect |
+| Objeto | ID | Precio | Efecto |
 |---|---|---|---|
-| ✨ Brillo de Aura | `glow` | 500 | Your name sparkles in the ranking (auto) |
-| 🔄 Reintento de Aura | `skip` | 800 | Reroll your daily aura |
-| 🛡️ Escudo de Aura | `shield` | 600 | Protects you from 1 robbery |
-| 🚀 Multiplicador x2 | `boost` | 1200 | Your next aura roll is doubled |
+| ✨ Brillo de Aura | `glow` | 500 | Tu nombre brilla en el ranking (automático) |
+| 🔄 Reintento de Aura | `skip` | 800 | Vuelve a tirar tu aura diaria |
+| 🛡️ Escudo de Aura | `shield` | 600 | Te protege de 1 robo |
+| 🚀 Multiplicador x2 | `boost` | 1200 | Tu próxima tirada de aura se duplica |
 
 ---
 
-## 🎲 Games & Fun
+## 🎲 Juegos y Diversión
 
-| Command | Aliases | Description |
+| Comando | Aliases | Descripción |
 |---|---|---|
-| `cx!ppt [move]` | `piedrapapeltijera`, `piedra` | Rock, paper, scissors against Teto (win = aura) |
-| `cx!coinflip` | `tirar`, `caraocruz` | Flip a coin |
-| `cx!dado [sides]` | `dice`, `d` | Roll a die (defaults to d6) |
-| `cx!vs @u1 @u2` | `versus` | Decide who would win in a fight |
-| `cx!insultar @user` | `insulto` | Insult someone with style |
-| `cx!felicitar @user` | `feli`, `felicitacion` | Congratulate someone warmly |
-| `cx!fraude [@user]` | `fraud`, `fraudscan` | Brainrot fraud scan — analyze anyone's choppiness 🔍 |
-| `cx!hola [@user]` | `hello`, `hi` | Personalized greeting with random GIFs |
-| `cx!recordar <time> <text>` | `reminder`, `rem` | Set a reminder (e.g. `cx!recordar 10m Sacar al perro`) |
+| `cx!ppt [movimiento]` | `piedrapapeltijera`, `piedra` | Piedra, papel o tijera contra Teto (ganar = aura) |
+| `cx!coinflip` | `tirar`, `caraocruz` | Lanza una moneda al aire |
+| `cx!dado [lados]` | `dice`, `d` | Tira un dado (por defecto d6) |
+| `cx!vs @u1 @u2` | `versus` | Decide quién ganaría en una pelea |
+| `cx!insultar @usuario` | `insulto` | Insulta a alguien con ingenio |
+| `cx!felicitar @usuario` | `feli`, `felicitacion` | Felicita a alguien con cariño |
+| `cx!hola [@usuario]` | `hello`, `hi` | Saludo personalizado con GIFs aleatorios |
+| `cx!recordar <tiempo> <texto>` | `reminder`, `rem` | Pon un recordatorio (ej. `cx!recordar 10m Sacar al perro`) |
 
 ---
 
-## 🛡️ Moderation
+## 🛡️ Moderación
 
-| Command | Aliases | Description |
+| Comando | Aliases | Descripción |
 |---|---|---|
-| `cx!ruleta` | `ruleta_rusa` | Random voice channel kick — someone's getting yeeted |
-| `cx!angelguard` | — | Emergency: lifts all active timeouts on the server |
-| `cx!mlshr [N \| all]` | — | Bulk message purge (requires manage_messages) |
+| `cx!ruleta` | `ruleta_rusa` | Kick aleatorio del canal de voz — alguien va a volar |
+| `cx!angelguard` | — | Emergencia: levanta todos los timeouts activos del servidor |
+| `cx!mlshr [N \| all]` | — | Limpieza masiva de mensajes (requiere manage_messages) |
 
 ---
 
-## 👑 Admin Commands
+## 👑 Comandos de Admin
 
-Restricted to the bot creator.
+Restringidos al creador del bot.
 
-| Command | Aliases | Description |
+| Comando | Aliases | Descripción |
 |---|---|---|
-| `cx!decir <text>` | `say` | Teto speaks in the current channel |
-| `cx!dm @user <text>` | `md`, `mensajedirecto` | Send a private message to a user |
-| `cx!anuncio <text>` | `announce`, `avisar` | Post a formatted announcement in the announcements channel |
-| `cx!saycanal <#channel> <text>` | `hablar`, `deciren` | Teto speaks in a specific channel |
-| `cx!giveaura @user <amount>` | `daraura`, `regalaraura` | Give or remove aura from a user |
-| `cx!setaura @user <value>` | — | Set a user's aura to a specific value |
-| `cx!resetaura @user` | — | Reset a user's aura |
-| `cx!castigo @user` | `cast` | Sentence someone to a random punishment |
-| `cx!backup` | `exportar`, `respaldar` | Export all bot data to JSON |
-| `cx!cita @u1 @u2` | — | Move two users to the date channel |
-| `cx!re <#channel>` | `reunion`, `raid` | Move all voice users to a specified channel |
-| `cx!muteall` | — | Mute everyone in your voice channel |
-| `cx!unmuteall` | — | Unmute everyone in your voice channel |
+| `cx!decir <texto>` | `say` | Teto habla en el canal actual |
+| `cx!dm @usuario <texto>` | `md`, `mensajedirecto` | Envía un mensaje privado a un usuario |
+| `cx!anuncio <texto>` | `announce`, `avisar` | Publica un anuncio formateado en el canal de anuncios |
+| `cx!saycanal <#canal> <texto>` | `hablar`, `deciren` | Teto habla en un canal específico |
+| `cx!giveaura @usuario <cantidad>` | `daraura`, `regalaraura` | Da o quita aura a un usuario |
+| `cx!setaura @usuario <valor>` | — | Establece el aura de un usuario a un valor específico |
+| `cx!resetaura @usuario` | — | Resetea el aura de un usuario |
+| `cx!castigo @usuario` | `cast` | Condena a alguien a un castigo aleatorio |
+| `cx!backup` | `exportar`, `respaldar` | Exporta todos los datos del bot a JSON |
+| `cx!cita @u1 @u2` | — | Mueve a dos usuarios al canal de citas |
+| `cx!re <#canal>` | `reunion`, `raid` | Mueve a todos los usuarios de voz a un canal específico |
+| `cx!muteall` | — | Silencia a todos en tu canal de voz |
+| `cx!unmuteall` | — | Quita el silencio a todos en tu canal de voz |
 
 ---
 
-## 🛰️ Intelligent Systems
+## 🛰️ Sistemas Inteligentes
 
-The bot runs background systems automatically:
+El bot ejecuta sistemas automáticos en segundo plano:
 
-| System | Description |
+| Sistema | Descripción |
 |---|---|
-| **🧲 Date Magnet** | If two configured user IDs are in different voice channels, Teto moves them both to the date channel simultaneously |
-| **💀 Chopped Alert** | Every 6 hours, Teto picks a random member and declares them chopped in announcements |
-| **🛡️ Restraining Orders** | Prevent two users from being in the same voice channel |
+| **🧲 Imán de Citas** | Si dos IDs configuradas están en canales de voz distintos, Teto las mueve al canal de citas simultáneamente |
+| **💀 Alerta Chopped** | Cada 6 horas, Teto elige un miembro aleatorio y lo declara chopped en anuncios |
+| **🛡️ Órdenes de Alejamiento** | Evita que dos usuarios estén en el mismo canal de voz |
 
-### Voice Monitoring Commands
+### Comandos de Monitoreo de Voz
 
-| Command | Description |
+| Comando | Descripción |
 |---|---|
-| `cx!nxc` | Toggle the voice monitoring system on/off |
-| `cx!oa @u1 @u2` | `ordenalejamiento` — Toggle restraining order between two users |
+| `cx!nxc` | Activa/desactiva el sistema de monitoreo de voz |
+| `cx!oa @u1 @u2` | `ordenalejamiento` — Activa/desactiva orden de alejamiento entre dos usuarios |
 
 ---
 
-## ⚙️ Configuration
+## ⚙️ Configuración
 
-The bot is configured via environment variables and `config.py`:
+El bot se configura mediante variables de entorno y `config.py`:
 
-| Variable | Default | Description |
+| Variable | Por defecto | Descripción |
 |---|---|---|
-| `DISCORD_TOKEN` | — | Discord bot token (required) |
-| `COMMAND_PREFIX` | `cx!` | Bot command prefix |
-| `GROQ_API_KEY` | — | Groq API key for AI chat |
-| `ADMIN_ID` | `979869404110159912` | Bot creator's Discord user ID |
+| `DISCORD_TOKEN` | — | Token del bot de Discord (requerido) |
+| `COMMAND_PREFIX` | `cx!` | Prefijo de comandos del bot |
+| `GROQ_API_KEY` | — | API Key de Groq para los comandos de IA |
+| `KLIPY_API_KEY` | — | API Key de Klipy para los GIFs |
+| `ADMIN_ID` | `979869404110159912` | ID de Discord del creador del bot |
 
 ---
 
-## 📱 Contact & Socials
+## 📱 Contacto y Redes
 
 - **X (Twitter):** [@cxctxs_jxck](https://twitter.com/cxctxs_jxck)
 - **Instagram:** [@cxctxs_jxck](https://instagram.com/cxctxs_jxck)
@@ -207,8 +267,8 @@ The bot is configured via environment variables and `config.py`:
 
 <div align="center">
 
-**Developed by** `cxctxs_jxck` · **Credits:** Sleepy
+**Desarrollado por** `cxctxs_jxck` · **Créditos:** Sleepy
 
-*Teto approves this bot. 🥖*
+*Teto aprueba este bot. 🥖*
 
 </div>
