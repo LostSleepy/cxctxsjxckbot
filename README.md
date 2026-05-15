@@ -28,7 +28,7 @@ Todos los comandos de IA se invocan explícitamente — la IA **nunca responde a
 
 | Comando | Aliases | Descripción |
 |---|---|---|
-| `cx!chat <mensaje>` | `conversar`, `hablar` | Habla con Teto (IA libre) con su personalidad única |
+| `cx!chat <mensaje>` | `conversar` | Habla con Teto (IA libre) con su personalidad única |
 | `cx!frase <tema>` | — | Genera una cita o frase ingeniosa sobre un tema |
 | `cx!idea` | — | Idea aleatoria creativa y original |
 | `cx!inspirar` | `inspo`, `motivar` | Frase "inspiradora" de parodia LinkedIn/Instagram |
@@ -42,7 +42,7 @@ Todos los comandos de IA se invocan explícitamente — la IA **nunca responde a
 | `cx!chiste [tema]` | — | Chiste malo, absurdo o ingenioso |
 | `cx!poema <tema>` | — | Poema corto de 2-3 versos |
 | `cx!cuento [tema]` | — | Microcuento de 3 frases |
-| `cx!citaanime` | `cita`, `animequote` | Genera una cita aleatoria de anime con personaje |
+| `cx!citaanime` | `animequote` | Genera una cita aleatoria de anime con personaje |
 | `cx!nick <nombre>` | — | 3 apodos épicos o graciosos para un nombre |
 | `cx!titulo <tema>` | — | Título de película/serie inventado con género |
 | `cx!escenario [contexto]` | — | Escenario hipotético loco |
@@ -52,8 +52,8 @@ Todos los comandos de IA se invocan explícitamente — la IA **nunca responde a
 | Comando | Aliases | Descripción |
 |---|---|---|
 | `cx!shipp @u1 @u2` | — | Ship name + descripción + % de compatibilidad (IA) |
-| `cx!insulto @usuario` | — | Insulto creativo en tono de broma |
-| `cx!cumplido @usuario` | — | Cumplido épico y memorable |
+| `cx!bromai @usuario` | `broma`, `insultoia` | Insulto creativo en tono de broma |
+| `cx!halago @usuario` | `piropo`, `cumplidoia` | Cumplido épico y memorable (IA) |
 | `cx!retar @usuario` | `reto` | Lanza un desafío absurdo a alguien |
 | `cx!futuro @usuario` | — | Predicción absurda del futuro |
 
@@ -89,7 +89,7 @@ Todos los comandos de IA se invocan explícitamente — la IA **nunca responde a
 | Comando | Aliases | Descripción |
 |---|---|---|
 | `cx!personalidad` | — | Teto se describe a sí misma (diferente cada vez) |
-| `cx!version` | `versión`, `info` | Versión e información del bot |
+| `cx!version` | `versión` | Versión e información del bot |
 | `cx!error` | `fallo`, `panic` | Mensaje de error falso y dramático |
 
 **Nota:** Cada comando tiene un prompt de IA específico para su función. Cooldown de 3s entre comandos IA.

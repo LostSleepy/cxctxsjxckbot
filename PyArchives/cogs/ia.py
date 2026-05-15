@@ -396,7 +396,8 @@ class IA(commands.Cog):
 
     # ── Core Commands ────────────────────────────────────────────────────────
 
-    @commands.command(name="chat", aliases=["conversar", "hablar"])
+    @commands.command(name="chat", aliases=["conversar"])
+    # alias 'hablar' quitado: conflicto con !saycanal (alias: hablar) en extras.py
     async def teto_chat(self, ctx: commands.Context, *, mensaje: str) -> None:
         """💬 Habla con Teto — responde como ella, con su personalidad única."""
         await self._handle_ai_command(ctx, "teto", mensaje)
@@ -421,7 +422,8 @@ class IA(commands.Cog):
         """📝 Resume un texto en pocas oraciones."""
         await self._handle_ai_command(ctx, "resumir", texto)
 
-    @commands.command(name="citaanime", aliases=["animequote", "cita"])
+    @commands.command(name="citaanime", aliases=["animequote"])
+    # alias 'cita' quitado: conflicto con !cita en utilidad.py
     async def cita_anime(self, ctx: commands.Context) -> None:
         """🎌 Genera una cita aleatoria de anime con personaje incluido."""
         await self._handle_ai_command(ctx, "citaanime", "Dame una cita de anime aleatoria")
@@ -528,13 +530,13 @@ class IA(commands.Cog):
 
     # ── New Commands: Interaction & Role ─────────────────────────────────────
 
-    @commands.command(name="insulto")
-    async def insulto(self, ctx: commands.Context, *, usuario: discord.Member) -> None:
+    @commands.command(name="bromai", aliases=["broma","insultoia"])
+    async def broma_insulto(self, ctx: commands.Context, *, usuario: discord.Member) -> None:
         """😤 Insulto creativo y gracioso (en tono de broma entre amigos)."""
         await self._handle_ai_command(ctx, "insulto", usuario.display_name)
 
-    @commands.command(name="cumplido")
-    async def cumplido(self, ctx: commands.Context, *, usuario: discord.Member) -> None:
+    @commands.command(name="halago", aliases=["piropo","cumplidoia"])
+    async def halago(self, ctx: commands.Context, *, usuario: discord.Member) -> None:
         """💖 Cumplido épico y memorable para alguien."""
         await self._handle_ai_command(ctx, "cumplido", usuario.display_name)
 
@@ -590,7 +592,8 @@ class IA(commands.Cog):
         """🤖 Teto se describe a sí misma (diferente cada vez)."""
         await self._handle_ai_command(ctx, "personalidad", "Descríbete")
 
-    @commands.command(name="version", aliases=["versión", "info"])
+    @commands.command(name="version", aliases=["versión"])
+    # alias 'info' quitado: conflicto con !userinfo (alias: info) en utilidad.py
     async def version(self, ctx: commands.Context) -> None:
         """📋 Teto explica qué versión es y qué sabe hacer."""
         await self._handle_ai_command(ctx, "version", "¿Qué versión eres?")

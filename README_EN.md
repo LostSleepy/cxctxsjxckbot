@@ -28,7 +28,7 @@ All AI commands must be invoked explicitly — the AI **never responds automatic
 
 | Command | Aliases | Description |
 |---|---|---|
-| `cx!chat <message>` | `conversar`, `hablar` | Chat with Teto's unique personality |
+| `cx!chat <message>` | `conversar` | Chat with Teto's unique personality |
 | `cx!frase <topic>` | — | Generate a clever quote or phrase about a topic |
 | `cx!idea` | — | Random creative original idea |
 | `cx!inspirar` | `inspo`, `motivar` | Parody "inspirational" LinkedIn/Instagram quote |
@@ -42,7 +42,7 @@ All AI commands must be invoked explicitly — the AI **never responds automatic
 | `cx!chiste [topic]` | — | Bad/absurd joke about a topic |
 | `cx!poema <topic>` | — | Short 2-3 verse poem |
 | `cx!cuento [topic]` | — | Micro-story in 3 sentences |
-| `cx!citaanime` | `cita`, `animequote` | Random anime quote with character name |
+| `cx!citaanime` | `animequote` | Random anime quote with character name |
 | `cx!nick <name>` | — | 3 epic/funny nicknames from a name |
 | `cx!titulo <topic>` | — | Invented movie/series title with genre |
 | `cx!escenario [context]` | — | Crazy hypothetical scenario |
@@ -52,8 +52,8 @@ All AI commands must be invoked explicitly — the AI **never responds automatic
 | Command | Aliases | Description |
 |---|---|---|
 | `cx!shipp @u1 @u2` | — | Ship name + description + % compatibility (AI) |
-| `cx!insulto @user` | — | Creative insult (friendly banter) |
-| `cx!cumplido @user` | — | Epic memorable compliment |
+| `cx!bromai @user` | `broma`, `insultoia` | Creative insult (friendly banter) |
+| `cx!halago @user` | `piropo`, `cumplidoia` | Epic memorable compliment (AI) |
 | `cx!retar @user` | `reto` | Launch an absurd challenge at someone |
 | `cx!futuro @user` | — | Absurd future prediction |
 
@@ -89,7 +89,7 @@ All AI commands must be invoked explicitly — the AI **never responds automatic
 | Command | Aliases | Description |
 |---|---|---|
 | `cx!personalidad` | — | Teto describes herself (different every time) |
-| `cx!version` | `versión`, `info` | Bot version and info |
+| `cx!version` | `versión` | Bot version and info |
 | `cx!error` | `fallo`, `panic` | Fake dramatic error message |
 
 **Note:** Each command has its own tailored AI prompt. 3s cooldown between AI commands.

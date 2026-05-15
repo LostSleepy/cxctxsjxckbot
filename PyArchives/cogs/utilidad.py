@@ -518,8 +518,8 @@ class Utilidad(commands.Cog):
                 "`curiosidad` — Dato curioso fascinante\n"
                 "`toplista` — Top N sobre un tema\n"
                 "`shipp` — Ship name entre dos usuarios\n"
-                "`insulto` — Insulto creativo (broma)\n"
-                "`cumplido` — Cumplido épico"
+                "`bromai` — Insulto creativo (broma)\n"
+                "`halago` — Cumplido épico"
             ),
             inline=False,
         )
