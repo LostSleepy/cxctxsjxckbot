@@ -43,6 +43,24 @@ _FALLBACK_GIFS: Dict[str, Union[List[str], str]] = {
         "https://static.klipy.com/ii/f87f46a2c5aeaeed4c68910815f73eaf/fa/89/4XzyJJwX.gif",
         "https://static.klipy.com/ii/e293a233a303a98e471f78d04e13a1b0/cf/b8/WWh64sR8.gif",
     ],
+    "aura_high": [
+        "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/23/36/IIdvFtTn.gif",
+        "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/3a/8f/xG6dvEuBTbFk5s.gif",
+        "https://static.klipy.com/ii/f87f46a2c5aeaeed4c68910815f73eaf/04/ff/lx7cJhef.gif",
+        "https://static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/c5/36/Fn6Mwx5L.gif",
+        "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/0c/01/kbxB9NfhseffZ.gif",
+    ],
+    "aura_mid": [
+        "https://static.klipy.com/ii/35ccce3d852f7995dd2da910f2abd795/83/1d/miXnBam8.gif",
+        "https://static.klipy.com/ii/8ce8357c78ea940b9c2015daf05ce1a5/0a/c4/ZWB0q6ej.gif",
+        "https://static.klipy.com/ii/e293a233a303a98e471f78d04e13a1b0/74/b0/45Wwwv17.gif",
+        "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/18/09/67F8rUksjWt5GloTV.gif",
+    ],
+    "aura_low": [
+        "https://static.klipy.com/ii/35ccce3d852f7995dd2da910f2abd795/97/e9/JqY7x9yC.gif",
+        "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/a1/55/eMe2oFZQ3VtMfvGKEy.gif",
+        "https://i.pinimg.com/originals/63/91/26/639126a5ed46effc272235be01ad61e7.gif",
+    ],
     "emergencia": (
         "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe"
         "/a1/55/eMe2oFZQ3VtMfvGKEy.gif"
@@ -175,7 +193,7 @@ async def get_giphy_gif(query: str) -> str:
 async def get_aura_gif(points: int) -> str:
     """
     Return a GIF URL that matches the given aura tier.
-    Tries Klipy API first, falls back to local.
+    Uses curated GIFs from the fallback library for reliable, relevant results.
 
     Args:
         points: Aura score.
@@ -184,36 +202,9 @@ async def get_aura_gif(points: int) -> str:
         GIF URL string.
     """
     if points >= 3000:
-        search_term = "anime aura solo leveling"
-    elif points >= 1000:
-        search_term = "anime aura solo leveling"
-    elif points >= 0:
-        search_term = "anime aura"
-    else:
-        search_term = "no aura"
-
-    # Try Klipy API
-    gif_url = await search_klipy(search_term)
-    if gif_url:
-        return gif_url
-
-    # Fallback to hardcoded tier GIFs
-    if points >= 3000:
-        return (
-            "https://static.klipy.com/ii/f87f46a2c5aeaeed4c68910815f73eaf"
-            "/04/ff/lx7cJhef.gif"
-        )
+        return _get_fallback("aura_high")
     if points >= 1000:
-        return (
-            "https://static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4"
-            "/c5/36/Fn6Mwx5L.gif"
-        )
+        return _get_fallback("aura_high")
     if points >= 0:
-        return (
-            "https://static.klipy.com/ii/35ccce3d852f7995dd2da910f2abd795"
-            "/83/1d/miXnBam8.gif"
-        )
-    return (
-        "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe"
-        "/a1/55/eMe2oFZQ3VtMfvGKEy.gif"
-    )
+        return _get_fallback("aura_mid")
+    return _get_fallback("aura_low")
