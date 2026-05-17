@@ -38,34 +38,30 @@ _FALLBACK_GIFS: Dict[str, Union[List[str], str]] = {
     ],
     # ── Aura Alta (3000+) ────────────────────────────────────────────────────
     "aura_high": [
-        "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/23/36/IIdvFtTn.gif",
-        "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/3a/8f/xG6dvEuBTbFk5s.gif",
-        "https://static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/c5/36/Fn6Mwx5L.gif",
         "https://static.klipy.com/ii/f87f46a2c5aeaeed4c68910815f73eaf/04/ff/lx7cJhef.gif",
-        "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/7b/cd/WYtAn08dzsWpjQtp.gif",
     ],
     # ── Aura Media (0-2999) ──────────────────────────────────────────────────
     "aura_mid": [
-        "https://static.klipy.com/ii/8ce8357c78ea940b9c2015daf05ce1a5/0a/c4/ZWB0q6ej.gif",
-        "https://static.klipy.com/ii/e293a233a303a98e471f78d04e13a1b0/74/b0/45Wwwv17.gif",
-        "https://static.klipy.com/ii/35ccce3d852f7995dd2da910f2abd795/83/1d/miXnBam8.gif",
+        "https://static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/c5/36/Fn6Mwx5L.gif",
     ],
     # ── Aura Baja (< 0) ──────────────────────────────────────────────────────
     # NOTA: NO incluye el GIF de Pinterest que usa teamo/me
     "aura_low": [
-        "https://static.klipy.com/ii/35ccce3d852f7995dd2da910f2abd795/97/e9/JqY7x9yC.gif",
-        "https://static.klipy.com/ii/35ccce3d852f7995dd2da910f2abd795/ab/84/gNYgJb9x.gif",
-        "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/44/5e/rJdlt1wuhvJ5pwaIKA.gif",
+        "https://static.klipy.com/ii/35ccce3d852f7995dd2da910f2abd795/83/1d/miXnBam8.gif",
     ],
     # ── Emergencia (fallback global) ─────────────────────────────────────────
     "emergencia": (
-        "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe"
-        "/a1/55/eMe2oFZQ3VtMfvGKEy.gif"
+        "https://static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/da/e0/W7xLmi3N.gif"
     ),
     # ── Alabanzas ────────────────────────────────────────────────────────────
     "alaba": [
-        "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/0c/01/kbxB9NfhseffZ.gif",
-        "https://static.klipy.com/ii/a15b48460c436e1e92c85ffc680932cc/6e/95/vLsK2pcE.gif",
+        "https://static.klipy.com/ii/39f2394ae36df6e199be9eb7c9fa1012/39/42/E8IGzWJW.gif",
+        "https://static.klipy.com/ii/c44064a00e4b7451969381d90dea1769/5d/92/L5y4cQ3B.gif",
+        "https://static.klipy.com/ii/c3a19a0b747a76e98651f2b9a3cca5ff/31/ad/mqgprwVo.gif",
+        "https://static.klipy.com/ii/a15b48460c436e1e92c85ffc680932cc/19/d1/siCR473Y.gif",
+        "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/04/67/1Tl2ZMKMhH0N.gif",
+        "https://static.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/f8/a5/1xBYHGPKNdNRytfTNw.gif",
+        "https://static.klipy.com/ii/c3a19a0b747a76e98651f2b9a3cca5ff/24/e9/WEad3MSr.gif",
     ],
     # ── Teto / Teamo (exclusivo — NO compartido con aura) ────────────────────
     "me": [
