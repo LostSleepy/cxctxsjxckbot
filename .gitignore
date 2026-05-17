@@ -3,3 +3,6 @@ logs/
 nul
 __pycache__/
 *.pyc
+
+# Memoria universal del bot (no subir a GitHub)
+memoria.txt

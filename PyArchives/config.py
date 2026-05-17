@@ -34,10 +34,6 @@ GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
 GROQ_MODEL: str = "llama-3.3-70b-versatile"
 GROQ_MAX_TOKENS: int = 200
 
-# Klipy GIF API
-KLIPY_API_KEY: str = os.getenv("KLIPY_API_KEY", "fTGd8cknrTCEDMUPM9FUaom1w3DXKrfrFmmQV5Pf45Ek4NIXjpATmlaSmbwMfgme")
-KLIPY_BASE_URL: str = "https://api.klipy.com/api/v1"
-
 # --- Web Server ---
 PORT: int = int(os.getenv("PORT", "8080"))
 
