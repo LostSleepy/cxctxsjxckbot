@@ -17,17 +17,12 @@ ADMIN_ID: int = int(os.getenv("ADMIN_ID", "979869404110159912"))
 
 # --- Channel IDs ---
 CANAL_ANUNCIOS_ID: int = 1497645495051354113
-CANAL_CITAS_ID: int = 1478182165966753843
-
-# --- User IDs for Date Magnet ---
-USER_CITA_1: int = 1405353594844086343
-USER_CITA_2: int = 931222134670364682
 
 # --- File Paths ---
 BASE_DIR: Path = Path(__file__).resolve().parent
 AURA_DATA_PATH: Path = BASE_DIR / "aura_data.json"
 VOTOS_CHOPPED_PATH: Path = BASE_DIR / "votos_chopped.json"
-ORDENES_ALEJAMIENTO_PATH: Path = BASE_DIR / "ordenes_alejamiento.json"
+SHIP_DATA_PATH: Path = BASE_DIR / "ship_data.json"
 
 # --- APIs ---
 GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")

@@ -2,6 +2,7 @@
 Utility commands cog for the Teto Discord bot.
 Includes ping, 8ball, avatar, userinfo, ship, uptime, hora, help, and more.
 """
+import json
 import logging
 import random
 import time
@@ -12,9 +13,28 @@ import discord
 import pytz
 from discord.ext import commands
 
-from config import ADMIN_ID, CANAL_CITAS_ID
+from config import ADMIN_ID, SHIP_DATA_PATH
 
 log = logging.getLogger(__name__)
+
+
+def _cargar_ship_data() -> dict:
+    """Load ship compatibility data from JSON file."""
+    if not SHIP_DATA_PATH.exists():
+        return {}
+    try:
+        with open(SHIP_DATA_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _guardar_ship_data(data: dict) -> None:
+    """Save ship compatibility data to JSON file atomically."""
+    temp = SHIP_DATA_PATH.with_suffix(".tmp")
+    with open(temp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    temp.replace(SHIP_DATA_PATH)
 
 
 class Utilidad(commands.Cog):
@@ -141,63 +161,6 @@ class Utilidad(commands.Cog):
         )
         await ctx.send(embed=embed)
 
-    # ── Aleatorio ────────────────────────────────────────────────────────────
-    @commands.command(name="aleatorio", aliases=["azar", "random_user"])
-    async def aleatorio(self, ctx: commands.Context) -> None:
-        """Pick a random server member."""
-        usuarios = [m for m in ctx.guild.members if not m.bot]
-        if not usuarios:
-            await ctx.send("No hay usuarios válidos.")
-            return
-        elegido = random.choice(usuarios)
-        embed = discord.Embed(
-            title="🎲 Usuario Seleccionado",
-            description=elegido.mention,
-            color=discord.Color.gold(),
-        )
-        embed.set_thumbnail(url=elegido.display_avatar.url)
-        await ctx.send(embed=embed)
-
-    # ── Cita (admin only) ────────────────────────────────────────────────────
-    @commands.command(name="cita")
-    async def cita(
-        self, ctx: commands.Context, m1_id: str, m2_id: str
-    ) -> None:
-        """[Admin] Move two users to the date channel."""
-        if ctx.author.id != ADMIN_ID:
-            return
-        canal_destino = self.bot.get_channel(CANAL_CITAS_ID)
-        if not canal_destino:
-            await ctx.send("❌ No encuentro el canal de voz.")
-            return
-
-        exitos: List[str] = []
-        fallidos: List[str] = []
-
-        for raw_id in [m1_id, m2_id]:
-            cleaned = "".join(filter(str.isdigit, raw_id))
-            if not cleaned:
-                fallidos.append(f"ID inválida ({raw_id})")
-                continue
-            miembro: Optional[discord.Member] = None
-            for guild in self.bot.guilds:
-                miembro = guild.get_member(int(cleaned))
-                if miembro:
-                    break
-            if miembro and miembro.voice:
-                try:
-                    await miembro.move_to(canal_destino)
-                    exitos.append(miembro.display_name)
-                except discord.DiscordException:
-                    fallidos.append(f"{miembro.display_name} (Error)")
-            else:
-                fallidos.append(f"{raw_id} (No en voz)")
-
-        await ctx.send(
-            f"✅ {', '.join(exitos) or 'Ninguno'} | "
-            f"❌ {', '.join(fallidos) or 'Ninguno'}"
-        )
-
     # ── Hora ─────────────────────────────────────────────────────────────────
     @commands.command(name="hora")
     async def hora(self, ctx: commands.Context) -> None:
@@ -224,12 +187,25 @@ class Utilidad(commands.Cog):
         usuario1: discord.Member,
         usuario2: Optional[discord.Member] = None,
     ) -> None:
-        """Calculate love compatibility between two users."""
+        """Calculate love compatibility between two users (persistent)."""
         usuario2 = usuario2 or ctx.author
         if usuario2 == usuario1:
             usuario2 = ctx.author
 
-        porcentaje = random.randint(0, 100)
+        # Build a consistent key from sorted IDs so (A,B) == (B,A)
+        id_a, id_b = sorted((usuario1.id, usuario2.id))
+        key = f"{id_a}-{id_b}"
+
+        # Load existing data
+        data = _cargar_ship_data()
+
+        if key in data:
+            porcentaje = data[key]
+        else:
+            porcentaje = random.randint(0, 100)
+            data[key] = porcentaje
+            _guardar_ship_data(data)
+
         barra = "❤️" * (porcentaje // 10) + "🖤" * (10 - porcentaje // 10)
 
         embed = discord.Embed(
@@ -246,6 +222,7 @@ class Utilidad(commands.Cog):
             value=f"{porcentaje}%\n{barra}",
             inline=False,
         )
+        embed.set_footer(text="💞 Este valor es permanente para esta pareja.")
         await ctx.send(embed=embed)
 
     # ── Uptime ───────────────────────────────────────────────────────────────
@@ -267,44 +244,6 @@ class Utilidad(commands.Cog):
             "https://cdn.discordapp.com/attachments/874124605533614090/"
             "1478366865201037353/pFw1Rzg.mp4"
         )
-
-    # ── Reunión (admin only) ─────────────────────────────────────────────────
-    @commands.command(name="re", aliases=["reunion", "raid"])
-    async def reunion(
-        self,
-        ctx: commands.Context,
-        canal_destino: Optional[discord.VoiceChannel] = None,
-    ) -> None:
-        """[Admin] Move all voice users to the specified channel."""
-        if ctx.author.id != ADMIN_ID:
-            return
-        if canal_destino is None:
-            await ctx.send("❌ Indica el canal de voz destino. Ej: `cx!re #general`")
-            return
-
-        movidos = 0
-        fallidos = 0
-        for canal in ctx.guild.voice_channels:
-            if canal.id == canal_destino.id:
-                continue
-            for miembro in canal.members:
-                if miembro.bot:
-                    continue
-                try:
-                    await miembro.move_to(canal_destino)
-                    movidos += 1
-                except discord.DiscordException:
-                    fallidos += 1
-
-        mensaje = (
-            f"✅ Reunión completada en {canal_destino.mention}. "
-            f"**{movidos}** movidos"
-        )
-        if fallidos:
-            mensaje += f", {fallidos} fallidos."
-        else:
-            mensaje += "."
-        await ctx.send(mensaje)
 
     # ── Mute All (admin only) ────────────────────────────────────────────────
     @commands.command(name="muteall")
@@ -411,61 +350,6 @@ class Utilidad(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    # ── Emoji ────────────────────────────────────────────────────────────────
-    @commands.command(name="emoji", aliases=["agrandar", "jumbo", "emojigrande"])
-    async def emoji_info(self, ctx: commands.Context, *, nombre_emoji: str = None) -> None:
-        """Muestra un emoji personalizado del servidor en grande."""
-        if not nombre_emoji:
-            await ctx.send("❌ Usa: `!emoji <nombre>`")
-            return
-
-        nombre_emoji = nombre_emoji.strip().strip(':')
-
-        # Search through guild emojis
-        found = None
-        for emoji in ctx.guild.emojis:
-            if emoji.name.lower() == nombre_emoji.lower():
-                found = emoji
-                break
-
-        if not found:
-            await ctx.send(f"❌ No encontré un emoji llamado `{nombre_emoji}` en este servidor.")
-            return
-
-        embed = discord.Embed(
-            title=f":{found.name}:",
-            description=f"🔗 **Link:** [Click aquí]({found.url})\n"
-                        f"🆔 **ID:** `{found.id}`\n"
-                        f"{'🎞️ **Animado**' if found.animated else '🖼️ **Estático**'}",
-            color=discord.Color.gold()
-        )
-        embed.set_image(url=found.url)
-        await ctx.send(embed=embed)
-
-
-    # ── Encuesta ─────────────────────────────────────────────────────────────
-    @commands.command(name="encuesta", aliases=["votacion", "poll"])
-    @commands.cooldown(1, 30, commands.BucketType.user)
-    async def encuesta(self, ctx: commands.Context, *, pregunta: str = None) -> None:
-        """Crea una encuesta con reacciones ✅/❌."""
-        await self._bypass_cooldown(ctx)
-        if not pregunta:
-            await ctx.send("❌ Usa: `!encuesta <pregunta>`")
-            return
-
-        embed = discord.Embed(
-            title="📊 Encuesta",
-            description=pregunta,
-            color=discord.Color.blue(),
-            timestamp=discord.utils.utcnow()
-        )
-        embed.set_footer(text=f"Propuesta por {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url)
-
-        message = await ctx.send(embed=embed)
-        await message.add_reaction("✅")
-        await message.add_reaction("❌")
-
-
     # ── Help ─────────────────────────────────────────────────────────────────
     @commands.command(name="help")
     async def help_command(self, ctx: commands.Context) -> None:
@@ -479,113 +363,32 @@ class Utilidad(commands.Cog):
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
 
         embed.add_field(
-            name="🎭 Jujutsu Kaisen",
+            name="🎮 Diversión",
             value=(
-                "`de` `bf` — Expansión de Dominio y Black Flash\n"
-                "`ritual` — Ritual misterioso con efectos de aura\n"
-                "`maldicion` — Maldice a alguien (JJK style)\n"
-                "`dedo` `buscardedo` — Busca un dedo de Sukuna \n"
-                "`sukuna` `dedos` — Tus dedos de Sukuna recolectados"
-            ),
-            inline=False,
-        )
-        embed.add_field(
-            name="🤖 IA — Chat & Creatividad",
-            value=(
-                "`chat` — Habla con Teto (IA libre)\n"
-                "`frase` — Cita o frase sobre un tema\n"
-                "`idea` — Idea sobre un tema\n"
-                "`citaanime` — Cita de anime\n"
-                "`chiste` — Chiste sobre un tema\n"
-                "`poema` — Poema corto sobre un tema\n"
-                "`cuento` — Microcuento de 3 frases\n"
-                "`nick` — 3 apodos a partir de un nombre\n"
-                "`titulo` — Título de peli/serie inventado\n"
-                "`excusa` — Excusa creativa\n"
-                "`inspirar` — Frase de inspiración"
-            ),
-            inline=False,
-        )
-        embed.add_field(
-            name="🤖 IA — Utilidad & Social",
-            value=(
-                "`traducir` — Traduce texto\n"
-                "`resumir` — Resume texto\n"
-                "`definir` — Definición real de una palabra\n"
-                "`sinonimo` — Sinónimos de una palabra\n"
-                "`explica` — Explica concepto de forma simple\n"
-                "`tipoprogramacion` — Tip de programación\n"
-                "`curiosidad` — Dato curioso\n"
-                "`toplista` — Top N sobre un tema\n"
-                "`shipp` — Ship name entre dos usuarios\n"
-                "`bromai` — Insulto de broma\n"
-                "`halago` — Cumplido sincero"
-            ),
-            inline=False,
-        )
-        embed.add_field(
-            name="🤖 IA — Juegos & Meta",
-            value=(
-                "`horoscopo` — Horóscopo para un signo\n"
-                "`futuro` — Predicción del futuro\n"
-                "`consejo` — Consejo útil\n"
-                "`debate` — Pregunta para debatir\n"
-                "`retar` — Reto para alguien\n"
-                "`elige` — IA elige entre opciones\n"
-                "`quehago` — Sugerencia de qué hacer\n"
-                "`escenario` — Escenario hipotético\n"
-                "`personalidad` — Teto se describe\n"
-                "`version` — Versión e info del bot\n"
-                "`error` — Error falso del sistema"
-            ),
-            inline=False,
-        )
-        embed.add_field(
-            name="✨ Sistema de Aura",
-            value=(
-                "`aura` — Consulta tu aura diaria\n"
-                "`top` `ranking` — Top 10 del server\n"
-                "`da` `dueloaura` — Duelo aleatorio (+50/-100)\n"
-                "`robar` `rob` — Roba aura con 50% de éxito\n"
-                "`vc` `votochopped` — 3 votos = timeout 5 min\n"
-                "`tienda` `shop` — Compra objetos con aura\n"
-                "`comprar` `buy` — Adquiere un objeto de la tienda\n"
-                "`inventario` `inv` — Tus objetos comprados"
-            ),
-            inline=False,
-        )
-        embed.add_field(
-            name="🔮 Diversión",
-            value=(
-                "`alaba` `glaze` — Teto alaba a quien digas 👑\n"
-                "`picha` `pp` — Medición científica diaria\n"
-                "`8ball` `ball` — La bola 8 mística\n"
-                "`ship` — Compatibilidad entre dos usuarios\n"
-                "`castigo` `cast` — Sentencia aleatoria\n"
-                "`vs` `versus` — Combate entre dos usuarios\n"
-                "`dado` `d` — Lanza un dado (d6 por defecto)\n"
+                "`aura` — Aura diaria • `top` — Ranking de aura\n"
+                "`vc` `votochopped` — Vota para timeout\n"
+                "`chat` `conversar` — Habla con Teto\n"
+                "`de` — Expansión de Dominio • `bf` — Black Flash\n"
+                "`choppeddaily` `cd` — Chopped diario 🥖\n"
+                "`castigo` `cast` — Castigo aleatorio\n"
+                "`alaba` `glaze` — Teto alaba 👑\n"
+                "`picha` `pp` — Medición científica\n"
+                "`ship` — Compatibilidad amorosa 💘\n"
+                "`vs` `versus` — Combate • `8ball` — Bola mística\n"
                 "`elegir` — Elige entre opciones\n"
-                "`aleatorio` — Usuario aleatorio del server\n"
-                "`ppt` `piedra` — Piedra, Papel o Tijera vs Teto\n"
-                "`coinflip` `tirar` — Cara o cruz\n"
-                "`insultar` — Insulta a alguien con estilo\n"
-                "`felicitar` — Felicita a un usuario\n"
+                "`hola` `hello` — Saludo con GIF"
             ),
             inline=False,
         )
         embed.add_field(
-            name="🖼️ Utilidad",
+            name="🛠️ Utilidad",
             value=(
-                "`ping` — Latencia\n"
+                "`ping` — Latencia • `uptime` — Tiempo activo\n"
                 "`avatar` `av` — Foto de perfil\n"
                 "`userinfo` `u` — Info de usuario\n"
-                "`hora` — Reloj mundial\n"
-                "`uptime` — Tiempo activo\n"
-                "`recordar` `rem` — Recordatorio *(ej: `cx!recordar 10m texto`)*\n"
-                "`servidor` `server` — Info del servidor\n"
-                "`rol` `role` — Info de un rol\n"
-                "`emoji` `agrandar` — Emoji en grande\n"
-                "`encuesta` `poll` — Crea una votación\n"
+                "`hora` — Reloj mundial • `servidor` — Info server\n"
+                "`rol` `role` — Info de rol\n"
+                "`recordar` `rem` — Recordatorio\n"
                 "`teto` — 🥖"
             ),
             inline=False,
@@ -593,11 +396,9 @@ class Utilidad(commands.Cog):
         embed.add_field(
             name="🛡️ Moderación",
             value=(
-                "`mlshr` — Purge de mensajes\n"
+                "`purge` — Limpiar mensajes\n"
                 "`ruleta` — Kick aleatorio de voz\n"
-                "`angelguard` — Quita todos los timeouts\n"
-                "`nxc` — Toggle imán de citas\n"
-                "`oa` — Orden de alejamiento"
+                "`angelguard` — Quita todos los timeouts"
             ),
             inline=False,
         )
@@ -606,13 +407,10 @@ class Utilidad(commands.Cog):
             embed.add_field(
                 name="👑 Admin (solo tú)",
                 value=(
-                    "`re` `reunion` — Reunir toda la voz\n"
                     "`muteall` `unmuteall` — Silenciar/Dessilenciar canal\n"
-                    "`cita` — Mover dos usuarios al canal de citas\n"
                     "`setaura` `resetaura` — Control manual de aura\n"
                     "`giveaura` `daraura` — Dar o quitar aura a alguien\n"
                     "`decir` `say` — Teto habla por ti\n"
-                    "`saycanal` `hablar` — Teto habla en un canal\n"
                     "`dm` `md` — Enviar MD a un usuario\n"
                     "`anuncio` `announce` — Anuncio oficial\n"
                     "`backup` `exportar` — Exportar datos del bot\n"

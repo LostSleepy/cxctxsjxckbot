@@ -110,7 +110,7 @@ class Moderacion(commands.Cog):
             )
 
     # ── Message Purge ────────────────────────────────────────────────────────
-    @commands.command(name="mlshr")
+    @commands.command(name="purge")
     @commands.has_permissions(manage_messages=True)
     async def mlshr(self, ctx: commands.Context, amount: str) -> None:
         """Bulk-delete messages. Usage: cx!mlshr [N | all]"""
