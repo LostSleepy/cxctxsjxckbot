@@ -540,7 +540,7 @@ class Extras(commands.Cog):
 
     # ── Castigo (non-blocking) ───────────────────────────────────────────────
     @commands.command(name="castigo", aliases=["cast"])
-    @commands.cooldown(1, 30, commands.BucketType.user)
+    @commands.cooldown(1, 3600, commands.BucketType.user)
     async def castigo(
         self,
         ctx: commands.Context,

@@ -9,6 +9,8 @@ from typing import List
 import discord
 from discord.ext import commands
 
+from config import ADMIN_ID
+
 log = logging.getLogger(__name__)
 
 
@@ -18,10 +20,17 @@ class Moderacion(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
+    async def _bypass_cooldown(self, ctx: commands.Context) -> None:
+        """Remove cooldown for the configured admin."""
+        if ctx.author.id == ADMIN_ID:
+            ctx.command.reset_cooldown(ctx)
+
     # ── Russian Roulette (voice kick) ────────────────────────────────────────
     @commands.command(name="ruleta", aliases=["ruleta_rusa"])
+    @commands.cooldown(1, 3600, commands.BucketType.user)
     async def ruleta_rusa(self, ctx: commands.Context) -> None:
         """Randomly kick a member from your voice channel."""
+        await self._bypass_cooldown(ctx)
         log.debug("Ruleta ejecutado por %s", ctx.author.name)
 
         if not ctx.author.voice:
