@@ -389,6 +389,7 @@ class Utilidad(commands.Cog):
                 "`hora` — Reloj mundial • `servidor` — Info server\n"
                 "`rol` `role` — Info de rol\n"
                 "`recordar` `rem` — Recordatorio\n"
+                "`pokemon` `poke` — Info de Pokémon 🔍\n"
                 "`teto` — 🥖"
             ),
             inline=False,

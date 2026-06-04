@@ -6,3 +6,7 @@ __pycache__/
 
 # Memoria universal del bot (no subir a GitHub)
 memoria.txt
+
+# Agentes
+AGENTS.md
+knowledge.md
