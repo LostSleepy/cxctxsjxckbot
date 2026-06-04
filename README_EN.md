@@ -77,6 +77,19 @@ Teto uses **Groq AI (Llama 3.1 8B / 70B)** to chat in Spanish.
 | `cx!servidor` | `server`, `guild` | Full server information |
 | `cx!rol [@role]` | `role`, `rolinfo` | Detailed role information |
 | `cx!recordar <time> <text>` | `rem`, `reminder` | Set a reminder (e.g. `cx!recordar 10m something`) |
+| `cx!pokemon <name>` | `poke`, `pokedex` | Pokemon info (PokeAPI) 🔍 |
+| `cx!pais <name>` | `country` | Country info (REST Countries API) 🌍 |
+| `cx!clima <city>` | `weather` | Current weather (Open-Meteo API) 🌤️ |
+| `cx!anime <name>` | `mal` | Search anime on MyAnimeList 🎬 |
+| `cx!perro [breed]` | `dog` | Random dog image 🐕 |
+| `cx!razas` | `breeds` | List all available dog breeds 🐕 |
+| `cx!cocktail <name>` | `drink` | Cocktail recipe 🍸 |
+| `cx!coctelaleatorio` | `randomdrink` | Random cocktail recipe 🍸 |
+| `cx!space` | `nasa`, `apod` | NASA Astronomy Picture of the Day 🚀 |
+| `cx!chiste` | `joke` | Random joke in Spanish 😂 |
+| `cx!traducir <txt>` | `translate` | Translate text to Spanish/other languages 🌐 |
+| `cx!receta <name>` | `recipe` | Food recipe with ingredients 🍳 |
+| `cx!catfact` | `gatofact` | Random cat fact 🐱 |
 | `cx!teto` | — | 🥖 |
 
 ---

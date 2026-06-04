@@ -131,14 +131,16 @@ class Utilidad(commands.Cog):
     async def userinfo(
         self, ctx: commands.Context, miembro: Optional[discord.Member] = None
     ) -> None:
-        """Show detailed user information."""
+        """Show detailed user information. Admins can add `raw` for extra info."""
         miembro = miembro or ctx.author
+        # Check message content directly so `cx!userinfo raw` works without member parsing
+        is_raw = ctx.author.id == ADMIN_ID and "raw" in ctx.message.content.lower().split()
         created_ts = int(miembro.created_at.timestamp())
         joined_ts = int(miembro.joined_at.timestamp())
         roles = [r.mention for r in miembro.roles if r.name != "@everyone"]
 
         embed = discord.Embed(
-            title=f"Información de {miembro.name}",
+            title=f"{'🔬 Información RAW de' if is_raw else 'Información de'} {miembro.name}",
             color=miembro.color,
         )
         embed.set_thumbnail(url=miembro.display_avatar.url)
@@ -159,6 +161,41 @@ class Utilidad(commands.Cog):
             value=" ".join(roles) if roles else "Sin roles",
             inline=False,
         )
+
+        if is_raw:
+            # Status mapping
+            status_map = {
+                discord.Status.online: "🟢 Online",
+                discord.Status.idle: "🟡 Idle",
+                discord.Status.dnd: "🔴 DND",
+                discord.Status.offline: "⚫ Offline",
+            }
+            status_str = status_map.get(miembro.status, "❓ Desconocido")
+            avatar_hash = str(miembro.avatar.key) if miembro.avatar else "N/A"
+            top_role = miembro.top_role.mention if miembro.top_role.name != "@everyone" else "Ninguno"
+            perms = [perm[0].replace("_", " ").title() for perm in miembro.guild_permissions if perm[1]]
+            perms_str = ", ".join(perms[:20])
+            if len(perms) > 20:
+                perms_str += f"\n... y {len(perms) - 20} más"
+
+            embed.add_field(name="📡 Estado", value=status_str, inline=True)
+            embed.add_field(name="🎮 Actividad", value=str(miembro.activity) if miembro.activity else "Ninguna", inline=True)
+            embed.add_field(name="🎭 Top Rol", value=top_role, inline=True)
+            embed.add_field(name="🖼️ Avatar Hash", value=f"`{avatar_hash}`", inline=True)
+            embed.add_field(name="🤖 Bot", value="Sí" if miembro.bot else "No", inline=True)
+            embed.add_field(name="🎨 Color", value=f"`#{miembro.color.value:06X}`", inline=True)
+            embed.add_field(name="🔑 Permisos", value=perms_str if perms else "Ninguno", inline=False)
+
+            # Aura (from extras cog)
+            extras_cog = self.bot.get_cog("Extras")
+            if extras_cog and hasattr(extras_cog, "aura_manager"):
+                aura = await extras_cog.aura_manager.get_aura(str(miembro.id))
+                embed.add_field(name="✨ Aura", value=f"`{aura} pts`", inline=True)
+
+            embed.set_footer(text="⚠️ Información solo visible para el admin", icon_url=ctx.author.display_avatar.url)
+        else:
+            embed.set_footer(text=f"Solicitado por {ctx.author.name}", icon_url=ctx.author.display_avatar.url)
+
         await ctx.send(embed=embed)
 
     # ── Hora ─────────────────────────────────────────────────────────────────
@@ -285,6 +322,28 @@ class Utilidad(commands.Cog):
                 pass
         await ctx.send(f"🔊 {count} usuarios dessilenciados.")
 
+    # ── Slowmode (admin only) ──────────────────────────────────────────────
+    @commands.command(name="slowmode", aliases=["sm"])
+    async def slowmode(self, ctx: commands.Context, canal: Optional[discord.TextChannel] = None, segundos: Optional[int] = None) -> None:
+        """[Admin] Establece el slowmode de un canal de texto."""
+        if ctx.author.id != ADMIN_ID:
+            return
+        if canal is None or segundos is None:
+            await ctx.send("❌ Usa: `cx!slowmode #canal 10` (o `0` para desactivar)")
+            return
+        if segundos < 0 or segundos > 21600:
+            await ctx.send("❌ El slowmode debe ser entre 0 y 21600 segundos (6h).")
+            return
+        try:
+            await canal.edit(slowmode_delay=segundos)
+            if segundos == 0:
+                await ctx.send(f"✅ Slowmode desactivado en {canal.mention}.")
+            else:
+                await ctx.send(f"✅ Slowmode en {canal.mention} establecido a **{segundos}s**.")
+        except discord.Forbidden:
+            await ctx.send("❌ No tengo permisos para modificar ese canal.")
+
+
     # ── Servidor Info ────────────────────────────────────────────────────────
     @commands.command(name="servidor", aliases=["server", "serverinfo", "guild", "guildinfo"])
     async def servidor_info(self, ctx: commands.Context) -> None:
@@ -390,6 +449,18 @@ class Utilidad(commands.Cog):
                 "`rol` `role` — Info de rol\n"
                 "`recordar` `rem` — Recordatorio\n"
                 "`pokemon` `poke` — Info de Pokémon 🔍\n"
+                "`pais` `country` — Info de un país 🌍\n"
+                "`clima` `weather` — Clima de una ciudad 🌤️\n"
+                "`anime` `mal` — Buscar anime 🎬\n"
+                "`perro` `dog` — Perrito aleatorio 🐕\n"
+                "`razas` `breeds` — Lista de razas 🐕\n"
+                "`coctel` `drink` — Receta de coctel 🍸\n"
+                "`coctelaleatorio` — Coctel aleatorio 🍸\n"
+                "`espacio` `nasa` — Foto del día NASA 🚀\n"
+                "`chiste` — Chiste aleatorio en español 😂\n"
+                "`traducir` `trad` — Traducir texto 🌐\n"
+                "`receta` — Receta de comida 🍳\n"
+                "`catfact` — Dato curioso de gatos 🐱\n"
                 "`teto` — 🥖"
             ),
             inline=False,
@@ -415,6 +486,14 @@ class Utilidad(commands.Cog):
                     "`dm` `md` — Enviar MD a un usuario\n"
                     "`anuncio` `announce` — Anuncio oficial\n"
                     "`backup` `exportar` — Exportar datos del bot\n"
+                    "`stats` `botinfo` — Dashboard del bot 📊\n"
+                    "`reload` `recargar` — Recargar cogs 🔄\n"
+                    "`logs` — Últimas líneas de log 📋\n"
+                    "`blacklist` `bl` — Bloquear usuario 🚫\n"
+                    "`unblacklist` `unbl` — Desbloquear usuario\n"
+                    "`blacklistlist` `bllist` — Ver bloqueados\n"
+                    "`aintenance` `mantenimiento` — Modo mantenimiento ⚙️\n"
+                    "`slowmode` `sm` — Slowmode en canal 🐌\n"
                     "`teamo` — 💕 (secreto)"
                 ),
                 inline=False,

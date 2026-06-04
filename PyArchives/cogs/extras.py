@@ -6,7 +6,10 @@ voting, reminders, and more.
 import asyncio
 import json
 import logging
+import os
+import platform
 import random
+import sys
 import time
 from datetime import timedelta
 from pathlib import Path
@@ -15,7 +18,7 @@ from typing import List, Optional, Tuple
 import discord
 from discord.ext import commands
 
-from config import ADMIN_ID, AURA_DATA_PATH, CANAL_ANUNCIOS_ID, VOTOS_CHOPPED_PATH
+from config import ADMIN_ID, AURA_DATA_PATH, BLACKLIST_PATH, CANAL_ANUNCIOS_ID, MAINTENANCE_PATH, VOTOS_CHOPPED_PATH
 from utils.aura_manager import AuraManager
 from utils.gif_manager import get_aura_gif, get_giphy_gif
 
@@ -163,6 +166,73 @@ class Extras(commands.Cog):
         self.bot = bot
         self.aura_manager = AuraManager(AURA_DATA_PATH)
         self._votos_chopped: dict = _cargar_votos(VOTOS_CHOPPED_PATH)
+        self._start_time: float = time.time()
+        self._blacklist: set[str] = self._load_blacklist()
+        self._maintenance: bool = self._load_maintenance()
+        # Global check: block blacklisted users & maintenance mode
+        self._bound_check = self._blacklist_check
+        self.bot.add_check(self._bound_check)
+
+    def _load_blacklist(self) -> set[str]:
+        """Load blacklisted user IDs from JSON."""
+        if not BLACKLIST_PATH.exists():
+            return set()
+        try:
+            with open(BLACKLIST_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return set(data.get("blocked", []))
+        except (json.JSONDecodeError, OSError):
+            return set()
+
+    def _save_blacklist(self) -> None:
+        """Save blacklisted user IDs to JSON atomically."""
+        temp = BLACKLIST_PATH.with_suffix(".tmp")
+        with open(temp, "w", encoding="utf-8") as f:
+            json.dump({"blocked": list(self._blacklist)}, f, indent=2)
+        temp.replace(BLACKLIST_PATH)
+
+    def _load_maintenance(self) -> bool:
+        """Load maintenance mode state from JSON."""
+        if not MAINTENANCE_PATH.exists():
+            return False
+        try:
+            with open(MAINTENANCE_PATH, "r", encoding="utf-8") as f:
+                return json.load(f).get("enabled", False)
+        except (json.JSONDecodeError, OSError):
+            return False
+
+    def _save_maintenance(self) -> None:
+        """Save maintenance mode state to JSON atomically."""
+        temp = MAINTENANCE_PATH.with_suffix(".tmp")
+        with open(temp, "w", encoding="utf-8") as f:
+            json.dump({"enabled": self._maintenance}, f, indent=2)
+        temp.replace(MAINTENANCE_PATH)
+
+    async def _blacklist_check(self, ctx: commands.Context) -> bool:
+        """Global check: block blacklisted users & maintenance mode."""
+        # Admin is never blocked
+        if ctx.author.id == ADMIN_ID:
+            return True
+        if str(ctx.author.id) in self._blacklist:
+            await ctx.send(
+                "🚫 Estás bloqueado y no puedes usar comandos del bot.",
+                delete_after=5,
+            )
+            return False
+        if self._maintenance:
+            await ctx.send(
+                "⚙️ Teto está en **mantenimiento**. Prueba más tarde.",
+                delete_after=8,
+            )
+            return False
+        return True
+
+    async def cog_unload(self) -> None:
+        """Remove the global check when the cog is unloaded."""
+        try:
+            self.bot.remove_check(self._bound_check)
+        except Exception:
+            pass
 
     # ── Admin Cooldown Bypass ────────────────────────────────────────────────
     async def _bypass_cooldown(self, ctx: commands.Context) -> None:
@@ -886,6 +956,254 @@ class Extras(commands.Cog):
         embed.add_field(name="📁 Archivo", value=f"`{backup_path.name}`", inline=True)
         embed.add_field(name="📦 Tamaño", value=f"{backup_path.stat().st_size / 1024:.1f} KB", inline=True)
         await ctx.send(embed=embed)
+
+
+    # ── Stats (admin only) ───────────────────────────────────────────────────
+    @commands.command(name="stats", aliases=["botinfo"])
+    async def stats(self, ctx: commands.Context) -> None:
+        """[Admin] Dashboard completo del estado del bot."""
+        if ctx.author.id != ADMIN_ID:
+            return
+
+        # Uptime
+        uptime_secs = int(time.time() - self._start_time)
+        days, remainder = divmod(uptime_secs, 86400)
+        hours, remainder = divmod(remainder, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        uptime_str = f"{days}d {hours}h {minutes}m {seconds}s"
+
+        # Server & user counts
+        total_guilds = len(self.bot.guilds)
+        total_users = sum(g.member_count or 0 for g in self.bot.guilds)
+
+        # Cog & command counts
+        loaded_cogs = len(self.bot.cogs)
+        total_cmds = len([c for c in self.bot.commands if not c.hidden])
+
+        # Latency
+        latency_ms = round(self.bot.latency * 1000)
+
+        # Aura stats
+        aura_data = {}
+        try:
+            with open(AURA_DATA_PATH, "r", encoding="utf-8") as f:
+                aura_data = json.load(f)
+        except Exception:
+            pass
+        aura_users = len(aura_data)
+        aura_avg = (
+            round(sum(aura_data.values()) / aura_users)
+            if aura_users > 0
+            else 0
+        )
+
+        embed = discord.Embed(
+            title="📊 Dashboard — Teto Bot",
+            color=discord.Color.from_rgb(255, 105, 180),
+        )
+        embed.set_thumbnail(url=self.bot.user.display_avatar.url)
+        embed.add_field(name="🟢 Latencia", value=f"`{latency_ms}ms`", inline=True)
+        embed.add_field(name="🕒 Uptime", value=f"`{uptime_str}`", inline=True)
+        embed.add_field(name="🏠 Servidores", value=f"`{total_guilds}`", inline=True)
+        embed.add_field(name="👥 Usuarios totales", value=f"`{total_users}`", inline=True)
+        embed.add_field(name="⚙️ Cogs cargados", value=f"`{loaded_cogs}`", inline=True)
+        embed.add_field(name="📋 Comandos", value=f"`{total_cmds}`", inline=True)
+        embed.add_field(name="✨ Usuarios con aura", value=f"`{aura_users}`", inline=True)
+        embed.add_field(name="📊 Aura media", value=f"`{aura_avg} pts`", inline=True)
+        embed.add_field(
+            name="🐍 Python",
+            value=f"`{sys.version.split()[0]}`",
+            inline=True,
+        )
+        embed.add_field(
+            name="🤖 discord.py",
+            value=f"`{discord.__version__}`",
+            inline=True,
+        )
+        embed.add_field(
+            name="💻 OS",
+            value=f"`{platform.system()} {platform.release()[:20]}`",
+            inline=True,
+        )
+        embed.set_footer(
+            text=f"Solicitado por {ctx.author.name}",
+            icon_url=ctx.author.display_avatar.url,
+        )
+        await ctx.send(embed=embed)
+
+
+    # ── Reload (admin only) ──────────────────────────────────────────────────
+    @commands.command(name="reload", aliases=["recargar"])
+    async def reload_cog(self, ctx: commands.Context, cog_name: Optional[str] = None) -> None:
+        """[Admin] Recarga un cog o todos sin reiniciar el bot."""
+        if ctx.author.id != ADMIN_ID:
+            return
+
+        if cog_name:
+            # Reload a single cog
+            extension = f"cogs.{cog_name.lower()}"
+            try:
+                await self.bot.reload_extension(extension)
+                await ctx.send(f"✅ Cog **{cog_name}** recargado.")
+            except Exception as e:
+                await ctx.send(f"❌ Error recargando **{cog_name}**: `{e}`")
+        else:
+            # Reload all cogs
+            cogs_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), "..", "cogs"
+            )
+            reloaded = 0
+            errors = []
+            for filename in sorted(os.listdir(cogs_path)):
+                if filename.endswith(".py") and not filename.startswith("__"):
+                    ext = f"cogs.{filename[:-3]}"
+                    try:
+                        await self.bot.reload_extension(ext)
+                        reloaded += 1
+                    except Exception as e:
+                        errors.append(f"{filename}: {e}")
+
+            desc = f"✅ **{reloaded}** cogs recargados."
+            if errors:
+                desc += f"\n❌ **{len(errors)}** errores:\n" + "\n".join(errors)
+            embed = discord.Embed(
+                title="🔄 Reload completo",
+                description=desc,
+                color=discord.Color.green() if not errors else discord.Color.orange(),
+            )
+            await ctx.send(embed=embed)
+
+
+    # ── Logs (admin only) ────────────────────────────────────────────────────
+    @commands.command(name="logs", aliases=["log"])
+    async def logs_cmd(self, ctx: commands.Context, lineas: Optional[int] = 15) -> None:
+        """[Admin] Muestra las últimas líneas de log del bot."""
+        if ctx.author.id != ADMIN_ID:
+            return
+
+        log_path = Path(__file__).resolve().parent.parent / "logs" / "bot.log"
+        if not log_path.exists():
+            await ctx.send("❌ No se encontró el archivo de logs.")
+            return
+
+        try:
+            with open(log_path, "r", encoding="utf-8") as f:
+                all_lines = f.readlines()
+            last = all_lines[-lineas:]
+        except Exception as e:
+            await ctx.send(f"❌ Error leyendo logs: `{e}`")
+            return
+
+        content = "".join(last)
+        # Truncate if too long for Discord (2000 chars)
+        if len(content) > 1900:
+            content = "..." + content[-1900:]
+
+        embed = discord.Embed(
+            title=f"📋 Últimas {len(last)} líneas de log",
+            description=f"```\n{content}```",
+            color=discord.Color.dark_grey(),
+        )
+        embed.set_footer(
+            text=f"{log_path.name} • {len(all_lines)} líneas totales",
+        )
+        await ctx.send(embed=embed)
+
+
+    # ── Blacklist (admin only) ───────────────────────────────────────────────
+    @commands.command(name="blacklist", aliases=["bl"])
+    async def blacklist_user(self, ctx: commands.Context, usuario: Optional[discord.Member] = None) -> None:
+        """[Admin] Bloquea a un usuario de usar todos los comandos del bot."""
+        if ctx.author.id != ADMIN_ID:
+            return
+        if usuario is None:
+            await ctx.send("❌ Usa: `cx!blacklist @usuario`")
+            return
+        if usuario.id == ADMIN_ID:
+            await ctx.send("❌ No puedes bloquearte a ti mismo.")
+            return
+
+        uid = str(usuario.id)
+        if uid in self._blacklist:
+            await ctx.send(f"⚠️ {usuario.mention} ya está bloqueado.")
+            return
+
+        self._blacklist.add(uid)
+        self._save_blacklist()
+        await ctx.send(f"🚫 {usuario.mention} bloqueado de todos los comandos del bot.")
+
+    @commands.command(name="unblacklist", aliases=["unbl"])
+    async def unblacklist_user(self, ctx: commands.Context, usuario: Optional[discord.Member] = None) -> None:
+        """[Admin] Desbloquea a un usuario."""
+        if ctx.author.id != ADMIN_ID:
+            return
+        if usuario is None:
+            await ctx.send("❌ Usa: `cx!unblacklist @usuario`")
+            return
+
+        uid = str(usuario.id)
+        if uid not in self._blacklist:
+            await ctx.send(f"⚠️ {usuario.mention} no está bloqueado.")
+            return
+
+        self._blacklist.discard(uid)
+        self._save_blacklist()
+        await ctx.send(f"✅ {usuario.mention} desbloqueado.")
+
+    @commands.command(name="blacklistlist", aliases=["bllist"])
+    async def blacklist_list(self, ctx: commands.Context) -> None:
+        """[Admin] Muestra todos los usuarios bloqueados."""
+        if ctx.author.id != ADMIN_ID:
+            return
+        if not self._blacklist:
+            await ctx.send("📋 No hay usuarios bloqueados.")
+            return
+
+        lines = []
+        for uid in self._blacklist:
+            member = ctx.guild.get_member(int(uid)) if ctx.guild else None
+            name = member.display_name if member else f"ID: {uid}"
+            lines.append(f"• {name} (`{uid}`)")
+
+        embed = discord.Embed(
+            title=f"🚫 Blacklist ({len(self._blacklist)} usuarios)",
+            description="\n".join(lines),
+            color=discord.Color.red(),
+        )
+        await ctx.send(embed=embed)
+
+
+    # ── Maintenance (admin only) ──────────────────────────────────────────────
+    @commands.command(name="aintenance", aliases=["mantenimiento"])
+    async def maintenance_toggle(self, ctx: commands.Context) -> None:
+        """[Admin] Activa/desactiva el modo mantenimiento."""
+        if ctx.author.id != ADMIN_ID:
+            return
+
+        self._maintenance = not self._maintenance
+        self._save_maintenance()
+
+        if self._maintenance:
+            embed = discord.Embed(
+                title="⚙️ Modo Mantenimiento — ACTIVADO",
+                description="Solo tú puedes usar comandos. El resto verá un aviso.",
+                color=discord.Color.orange(),
+            )
+        else:
+            embed = discord.Embed(
+                title="⚙️ Modo Mantenimiento — DESACTIVADO",
+                description="El bot vuelve a la normalidad.",
+                color=discord.Color.green(),
+            )
+        await ctx.send(embed=embed)
+
+    @commands.command(name="aintenancestatus", aliases=["mantstatus"])
+    async def maintenance_status(self, ctx: commands.Context) -> None:
+        """[Admin] Consulta el estado del modo mantenimiento."""
+        if ctx.author.id != ADMIN_ID:
+            return
+        estado = "🟢 ACTIVADO" if self._maintenance else "🔴 Desactivado"
+        await ctx.send(f"⚙️ Modo mantenimiento: **{estado}**")
 
 
 async def setup(bot: commands.Bot) -> None:

@@ -77,6 +77,19 @@ Teto usa **Groq AI (Llama 3.1 8B / 70B)** para conversar en español.
 | `cx!servidor` | `server`, `guild` | Info completa del servidor |
 | `cx!rol [@rol]` | `role`, `rolinfo` | Info detallada de un rol |
 | `cx!recordar <tiempo> <texto>` | `rem`, `reminder` | Pon un recordatorio (ej: `cx!recordar 10m algo`) |
+| `cx!pokemon <nombre>` | `poke`, `pokedex` | Info de un Pokémon (PokeAPI) 🔍 |
+| `cx!pais <nombre>` | `country`, `país` | Info de un país (REST Countries) 🌍 |
+| `cx!clima <ciudad>` | `weather`, `tiempo` | Clima actual de una ciudad (Open-Meteo) 🌤️ |
+| `cx!anime <nombre>` | `mal` | Buscar anime en MyAnimeList 🎬 |
+| `cx!perro [raza]` | `dog`, `perrito` | Imagen aleatoria de perro 🐕 |
+| `cx!razas` | `breeds` | Lista de razas de perro disponibles 🐕 |
+| `cx!coctel <nombre>` | `drink`, `cocktail` | Receta de coctel 🍸 |
+| `cx!coctelaleatorio` | `randomdrink` | Coctel aleatorio 🍸 |
+| `cx!espacio` | `nasa`, `apod` | Foto astronómica del día (NASA) 🚀 |
+| `cx!chiste` | `joke` | Chiste aleatorio en español 😂 |
+| `cx!traducir <txt>` | `translate` | Traducir texto a español/u otro idioma 🌐 |
+| `cx!receta <nombre>` | `recipe` | Receta de comida con ingredientes 🍳 |
+| `cx!catfact` | `gatofact` | Dato curioso sobre gatos 🐱 |
 | `cx!teto` | — | 🥖 |
 
 ---
