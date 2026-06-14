@@ -13,8 +13,7 @@ import json
 import logging
 import random
 import time
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 import discord
@@ -72,9 +71,8 @@ MSG_NO_PERMS: str = (
     "a {user} en `{channel}`."
 )
 
-# Weekly top templates
+# Weekly top template
 MSG_WEEKLY_TOP_TITLE: str = "📊 **TOP FARMERS DE LA SEMANA** 📊"
-MSG_WEEKLY_TOP_EMPTY: str = "🎉 ¡Nadie ha sido expulsado esta semana! Bien jugado."
 
 
 class AFKDetection(commands.Cog):
@@ -85,6 +83,7 @@ class AFKDetection(commands.Cog):
         self._data: Dict[str, Any] = {}
         self._load_data()
         self._save_pending: bool = False
+        self._initialized: bool = False
 
     # ═══════════════════════════════════════════════════════════════════════
     #  PERSISTENCE
@@ -252,6 +251,11 @@ class AFKDetection(commands.Cog):
     @tasks.loop(seconds=LOOP_INTERVAL)
     async def afk_loop(self) -> None:
         """Main AFK detection loop."""
+        # Initialize tracking on first run (catch users already in VC)
+        if not self._initialized:
+            await self._init_tracking()
+            self._initialized = True
+
         # Save if flagged
         if self._save_pending:
             self._save_data()
@@ -307,6 +311,23 @@ class AFKDetection(commands.Cog):
 
             except Exception as exc:
                 log.error("AFK: Error en guild %s: %s", guild.name, exc, exc_info=True)
+
+    async def _init_tracking(self) -> None:
+        """Catch up — track users already in voice channels on startup."""
+        tracked = 0
+        for guild in self.bot.guilds:
+            for channel in guild.voice_channels:
+                for member in channel.members:
+                    if member.bot:
+                        continue
+                    self._track_user(guild.id, member.id, channel.id)
+                    vs = member.voice
+                    if vs and vs.self_mute:
+                        self._update_track(guild.id, member.id, "self_muted_since", time.time())
+                    if vs and vs.self_deaf:
+                        self._update_track(guild.id, member.id, "self_deafened_since", time.time())
+                    tracked += 1
+        log.info("AFK: Seguimiento iniciado — %d usuarios en VC", tracked)
 
     @afk_loop.before_loop
     async def before_afk_loop(self) -> None:
@@ -506,6 +527,7 @@ class AFKDetection(commands.Cog):
         if not member.voice:
             self._untrack_user(guild.id, member.id)
             self._data["pending"].pop(self._pending_key(guild.id, member.id), None)
+            self._save_later()
             return
 
         channel_name = member.voice.channel.name if member.voice.channel else "desconocido"
@@ -555,6 +577,8 @@ class AFKDetection(commands.Cog):
 
         except discord.DiscordException as e:
             log.error("AFK: Error al echar a %s: %s", member.display_name, e)
+        else:
+            self._save_later()
 
     # ═══════════════════════════════════════════════════════════════════════
     #  COMMAND: afkgest GROUP
@@ -722,6 +746,8 @@ class AFKDetection(commands.Cog):
     @afkgest.group(name="whitelist")
     async def afkgest_whitelist(self, ctx: commands.Context) -> None:
         """Gestionar whitelist de roles. Subcomandos: add, remove."""
+        if ctx.author.id != ADMIN_ID:
+            return
         if ctx.invoked_subcommand is None:
             await ctx.send("Subcomandos: `cx!afkgest whitelist add @rol`, `remove @rol`")
 
