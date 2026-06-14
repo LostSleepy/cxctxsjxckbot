@@ -455,18 +455,34 @@ class AFKDetection(commands.Cog):
             return
 
         uid = message.author.id
-        # Check all pending — find any for this user
-        found = None
+
+        # Remove ALL pending entries for this user (across all guilds)
+        found_any = False
         for pkey, pinfo in list(self._data["pending"].items()):
             if int(pinfo["user_id"]) == uid:
-                found = pkey
-                break
+                self._data["pending"].pop(pkey, None)
+                found_any = True
 
-        if found:
-            self._data["pending"].pop(found, None)
-            self._save_later()
-            await message.channel.send(MSG_VERIFICATION_OK)
-            log.info("AFK: %s respondió verificación — cancelado", message.author.display_name)
+        if not found_any:
+            return
+
+        # Reset AFK tracking timestamps so the user gets a full timeout
+        # before being re-detected, preventing an infinite re-verification loop
+        now = time.time()
+        uid_str = str(uid)
+        for tracking in self._data["tracking"].values():
+            if uid_str in tracking:
+                entry = tracking[uid_str]
+                # Only reset timestamps that are actually set (not None)
+                # to avoid inventing an AFK state that doesn't exist
+                if entry.get("self_muted_since") is not None:
+                    entry["self_muted_since"] = now
+                if entry.get("self_deafened_since") is not None:
+                    entry["self_deafened_since"] = now
+
+        self._save_later()
+        await message.channel.send(MSG_VERIFICATION_OK)
+        log.info("AFK: %s respondió verificación — cancelado", message.author.display_name)
 
     # ═══════════════════════════════════════════════════════════════════════
     #  AFK LOGIC
