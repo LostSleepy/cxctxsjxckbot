@@ -17,6 +17,7 @@ ADMIN_ID: int = int(os.getenv("ADMIN_ID", "979869404110159912"))
 
 # --- Channel IDs ---
 CANAL_ANUNCIOS_ID: int = 1497645495051354113
+CANAL_BOT_ID: int = 1432506760698003466
 
 # --- File Paths ---
 BASE_DIR: Path = Path(__file__).resolve().parent
@@ -25,6 +26,7 @@ VOTOS_CHOPPED_PATH: Path = BASE_DIR / "votos_chopped.json"
 SHIP_DATA_PATH: Path = BASE_DIR / "ship_data.json"
 BLACKLIST_PATH: Path = BASE_DIR / "blacklist.json"
 MAINTENANCE_PATH: Path = BASE_DIR / "maintenance.json"
+AFK_DATA_PATH: Path = BASE_DIR / "afk_data.json"
 
 # --- APIs ---
 GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
