@@ -169,9 +169,24 @@ class Extras(commands.Cog):
         self._start_time: float = time.time()
         self._blacklist: set[str] = self._load_blacklist()
         self._maintenance: bool = self._load_maintenance()
+        # Hold strong refs to background tasks (castigo unmuters + recordar)
+        # so they aren't GC'd mid-execution.
+        self._background_tasks: set[asyncio.Task] = set()
         # Global check: block blacklisted users & maintenance mode
         self._bound_check = self._blacklist_check
         self.bot.add_check(self._bound_check)
+
+    def _track_task(self, coro) -> asyncio.Task:
+        """Create and retain a strong reference to a background task.
+
+        Without this, asyncio may collect the task before it actually
+        completes (see https://docs.python.org/3/library/asyncio-task.html#asyncio.create_task).
+        The discard callback removes the ref once the task finishes.
+        """
+        task = asyncio.create_task(coro)
+        self._background_tasks.add(task)
+        task.add_done_callback(self._background_tasks.discard)
+        return task
 
     def _load_blacklist(self) -> set[str]:
         """Load blacklisted user IDs from JSON."""
@@ -443,7 +458,7 @@ class Extras(commands.Cog):
                 await usuario.edit(mute=True)
                 await ctx.send(f"{emoji} {usuario.mention} queda {msg}")
                 if dur:
-                    asyncio.create_task(
+                    self._track_task(
                         self._delayed_edit(usuario, dur, mute=False)
                     )
 
@@ -454,7 +469,7 @@ class Extras(commands.Cog):
                 await usuario.edit(deafen=True)
                 await ctx.send(f"{emoji} {usuario.mention} queda {msg}")
                 if dur:
-                    asyncio.create_task(
+                    self._track_task(
                         self._delayed_edit(usuario, dur, deafen=False)
                     )
 
@@ -465,7 +480,7 @@ class Extras(commands.Cog):
                 await usuario.edit(mute=True, deafen=True)
                 await ctx.send(f"{emoji} {usuario.mention} queda {msg}")
                 if dur:
-                    asyncio.create_task(
+                    self._track_task(
                         self._delayed_edit(usuario, dur, mute=False, deafen=False)
                     )
 
@@ -585,7 +600,7 @@ class Extras(commands.Cog):
                     f"⏰ {ctx.author.mention} — tu recordatorio: **{mensaje}**"
                 )
 
-        asyncio.create_task(_enviar_recordatorio())
+        self._track_task(_enviar_recordatorio())
 
     # ── Black Flash ──────────────────────────────────────────────────────────
     @commands.command(name="bf", aliases=["blackflash"])
@@ -1174,7 +1189,7 @@ class Extras(commands.Cog):
 
 
     # ── Maintenance (admin only) ──────────────────────────────────────────────
-    @commands.command(name="aintenance", aliases=["mantenimiento"])
+    @commands.command(name="maintenance", aliases=["aintenance", "mantenimiento"])
     async def maintenance_toggle(self, ctx: commands.Context) -> None:
         """[Admin] Activa/desactiva el modo mantenimiento."""
         if ctx.author.id != ADMIN_ID:
@@ -1197,7 +1212,10 @@ class Extras(commands.Cog):
             )
         await ctx.send(embed=embed)
 
-    @commands.command(name="aintenancestatus", aliases=["mantstatus"])
+    @commands.command(
+        name="maintenance_status",
+        aliases=["aintenancestatus", "mantstatus"],
+    )
     async def maintenance_status(self, ctx: commands.Context) -> None:
         """[Admin] Consulta el estado del modo mantenimiento."""
         if ctx.author.id != ADMIN_ID:

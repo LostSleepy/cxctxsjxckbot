@@ -282,6 +282,44 @@ class Utilidad(commands.Cog):
             "1478366865201037353/pFw1Rzg.mp4"
         )
 
+    # ── Definir (dictionary lookup) ──────────────────────────────────────────
+    @commands.command(name="definir", aliases=["define", "dict"])
+    async def definir(self, ctx: commands.Context, *, palabra: str) -> None:
+        """📖 Look up a word's definition. Tries Spanish first, falls back to English."""
+        from utils.dictionary import lookup_word
+
+        if not palabra or not palabra.strip():
+            await ctx.send(
+                "❌ Uso: `cx!definir <palabra>` (ej: `cx!definir casa`)"
+            )
+            return
+
+        async with ctx.typing():
+            definitions = await lookup_word(palabra)
+
+        if not definitions:
+            embed = discord.Embed(
+                title=f"📖 {palabra}",
+                description=(
+                    "No encontré definiciones. "
+                    "Prueba otra palabra o comprueba la ortografía."
+                ),
+                color=discord.Color.red(),
+            )
+            await ctx.send(embed=embed)
+            return
+
+        embed = discord.Embed(
+            title=f"📖 Definición de {palabra}",
+            description="\n".join(f"• {d}" for d in definitions),
+            color=discord.Color.blue(),
+        )
+        embed.set_footer(
+            text="FreeDictionaryAPI • ES → EN fallback",
+            icon_url=ctx.author.display_avatar.url,
+        )
+        await ctx.send(embed=embed)
+
     # ── Mute All (admin only) ────────────────────────────────────────────────
     @commands.command(name="muteall")
     async def mute_all(self, ctx: commands.Context) -> None:
@@ -412,11 +450,15 @@ class Utilidad(commands.Cog):
     # ── Help ─────────────────────────────────────────────────────────────────
     @commands.command(name="help")
     async def help_command(self, ctx: commands.Context) -> None:
-        """Show the command panel."""
+        """Show the full command panel with all categories."""
         es_admin = ctx.author.id == ADMIN_ID
         embed = discord.Embed(
             title="🥖 Teto — Panel de Comandos",
-            description="Prefijo: `cx!` — Todos los comandos listos para usar.",
+            description=(
+                "Prefijo: `cx!` — Usa `cx!help` siempre que quieras verlo.\n"
+                "Los alias aparecen entre paréntesis. "
+                "**`@u` = usuario opcional**."
+            ),
             color=discord.Color.from_rgb(255, 105, 180),
         )
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
@@ -424,43 +466,53 @@ class Utilidad(commands.Cog):
         embed.add_field(
             name="🎮 Diversión",
             value=(
-                "`aura` — Aura diaria • `top` — Ranking de aura\n"
-                "`vc` `votochopped` — Vota para timeout\n"
-                "`chat` `conversar` — Habla con Teto\n"
-                "`de` — Expansión de Dominio • `bf` — Black Flash\n"
-                "`choppeddaily` `cd` — Chopped diario 🥖\n"
-                "`castigo` `cast` — Castigo aleatorio\n"
-                "`alaba` `glaze` — Teto alaba 👑\n"
-                "`picha` `pp` — Medición científica\n"
-                "`ship` — Compatibilidad amorosa 💘\n"
-                "`vs` `versus` — Combate • `8ball` — Bola mística\n"
+                "`aura` [@u] — Aura diaria (resetea cada 24h)\n"
+                "`top` (`ranking`, `leaderboard`) — Top 10 de aura\n"
+                "`vc` (`votochopped`) — Vota al chopped (3 votos = 5min)\n"
+                "`chat` (`conversar`) — Habla con Teto (IA)\n"
+                "`de` (`dominio`) — Expansión de Dominio 🏮\n"
+                "`bf` (`blackflash`) — Black Flash (5% duplica aura)\n"
+                "`choppeddaily` (`cd`, `chopped`, `dailychopped`) — Chopped diario 🥖\n"
+                "`castigo` (`cast`) — Castigo aleatorio\n"
+                "`alaba` (`glaze`, `alabanza`, `cumplido`) — Teto alaba 👑\n"
+                "`picha` (`pp`) — Medición científica\n"
+                "`ship` [@u1] [@u2] — Compatibilidad amorosa 💘\n"
+                "`vs` (`versus`) — Combate 🥊\n"
+                "`8ball` (`pregunta`, `ball`) — Bola 8 mística 🎱\n"
                 "`elegir` — Elige entre opciones\n"
-                "`hola` `hello` — Saludo con GIF"
+                "`hola` (`hello`, `hi`) — Saludo con GIF"
             ),
             inline=False,
         )
         embed.add_field(
             name="🛠️ Utilidad",
             value=(
-                "`ping` — Latencia • `uptime` — Tiempo activo\n"
-                "`avatar` `av` — Foto de perfil\n"
-                "`userinfo` `u` — Info de usuario\n"
-                "`hora` — Reloj mundial • `servidor` — Info server\n"
-                "`rol` `role` — Info de rol\n"
-                "`recordar` `rem` — Recordatorio\n"
-                "`pokemon` `poke` — Info de Pokémon 🔍\n"
-                "`pais` `country` — Info de un país 🌍\n"
-                "`clima` `weather` — Clima de una ciudad 🌤️\n"
-                "`anime` `mal` — Buscar anime 🎬\n"
-                "`perro` `dog` — Perrito aleatorio 🐕\n"
-                "`razas` `breeds` — Lista de razas 🐕\n"
-                "`coctel` `drink` — Receta de coctel 🍸\n"
-                "`coctelaleatorio` — Coctel aleatorio 🍸\n"
-                "`espacio` `nasa` — Foto del día NASA 🚀\n"
-                "`chiste` — Chiste aleatorio en español 😂\n"
-                "`traducir` `trad` — Traducir texto 🌐\n"
-                "`receta` — Receta de comida 🍳\n"
-                "`catfact` — Dato curioso de gatos 🐱\n"
+                "`help` — Este panel • `ping` — Latencia\n"
+                "`uptime` — Tiempo activa • `avatar` (`av`) — Foto de perfil\n"
+                "`userinfo` (`user`, `u`, `info`) [@u] — Info de usuario\n"
+                "`hora` — Reloj mundial • `servidor` (`server`, `serverinfo`, `guild`, `guildinfo`) — Info server\n"
+                "`rol` (`role`, `roleinfo`, `rolinfo`) — Info de rol\n"
+                "`recordar` (`rem`, `reminder`) — Recordatorio"
+            ),
+            inline=False,
+        )
+        embed.add_field(
+            name="🌐 APIs y búsquedas",
+            value=(
+                "`pokemon` (`poke`, `pokedex`) — Info de Pokémon 🔍\n"
+                "`pais` (`country`, `paises`) — Info de un país 🌍\n"
+                "`clima` (`weather`, `tiempo`) — Clima de una ciudad 🌤️\n"
+                "`anime` (`mal`, `myanimelist`) — Buscar anime en MAL 🎬\n"
+                "`perro` (`dog`, `doggo`, `perrito`) — Perrito aleatorio 🐕\n"
+                "`razas` (`breeds`) — Lista de razas 🐕\n"
+                "`coctel` (`cocktail`, `drink`) — Receta de coctel 🍸\n"
+                "`coctelaleatorio` (`randomdrink`, `randomcoctel`) — Coctel aleatorio 🍸\n"
+                "`espacio` (`space`, `nasa`, `apod`) — Foto NASA del día 🚀\n"
+                "`chiste` (`joke`, `chistes`) — Chiste aleatorio en español 😂\n"
+                "`traducir` (`translate`, `trad`) — Traducir texto 🌐\n"
+                "`receta` (`recipe`, `comida`) — Receta de comida 🍳\n"
+                "`catfact` (`gatofact`, `factcat`) — Dato curioso de gatos 🐱\n"
+                "`definir` (`define`, `dict`) — Definición de una palabra 📖\n"
                 "`teto` — 🥖"
             ),
             inline=False,
@@ -468,33 +520,57 @@ class Utilidad(commands.Cog):
         embed.add_field(
             name="🛡️ Moderación",
             value=(
-                "`purge` — Limpiar mensajes\n"
-                "`ruleta` — Kick aleatorio de voz\n"
-                "`angelguard` — Quita todos los timeouts"
+                "`purge` [N|all] — Limpiar mensajes (gestionar mensajes)\n"
+                "`ruleta` (`ruleta_rusa`) — Kick aleatorio de voz (cooldown 1h)\n"
+                "`angelguard` — Quita todos los timeouts ✨"
             ),
             inline=False,
         )
 
         if es_admin:
             embed.add_field(
+                name="🎧 Anti-AFK (admin)",
+                value=(
+                    "**`afkgest`** (`afkg`, `ag`) — Gestión del sistema\n"
+                    "`status` — Estado · `toggle` — Activar/Desactivar\n"
+                    "`timeout <min>` — Cambiar tiempo AFK (1–120)\n"
+                    "`exclude #canal` / `include #canal` — Excluir/Incluir\n"
+                    "`excluded` — Ver canales excluidos\n"
+                    "`whitelist add|remove|list @rol` — Roles exentos\n"
+                    "`strikes [@u]` — Strikes de un usuario\n"
+                    "`striketop` (`farmertop`, `strikes_top`) — Top farmers de la semana"
+                ),
+                inline=False,
+            )
+            embed.add_field(
                 name="👑 Admin (solo tú)",
                 value=(
-                    "`muteall` `unmuteall` — Silenciar/Dessilenciar canal\n"
-                    "`setaura` `resetaura` — Control manual de aura\n"
-                    "`giveaura` `daraura` — Dar o quitar aura a alguien\n"
-                    "`decir` `say` — Teto habla por ti\n"
-                    "`dm` `md` — Enviar MD a un usuario\n"
-                    "`anuncio` `announce` — Anuncio oficial\n"
-                    "`backup` `exportar` — Exportar datos del bot\n"
-                    "`stats` `botinfo` — Dashboard del bot 📊\n"
-                    "`reload` `recargar` — Recargar cogs 🔄\n"
-                    "`logs` — Últimas líneas de log 📋\n"
-                    "`blacklist` `bl` — Bloquear usuario 🚫\n"
-                    "`unblacklist` `unbl` — Desbloquear usuario\n"
-                    "`blacklistlist` `bllist` — Ver bloqueados\n"
-                    "`aintenance` `mantenimiento` — Modo mantenimiento ⚙️\n"
-                    "`slowmode` `sm` — Slowmode en canal 🐌\n"
+                    "`muteall` / `unmuteall` — Silenciar/Dessilenciar canal de voz\n"
+                    "`setaura` [@u] [valor] — Fijar aura · `resetaura` [@u] — Reset\n"
+                    "`giveaura` (`daraura`, `regalaraura`) [N] — Dar/quitar aura\n"
+                    "`decir` (`say`) — Teto habla por ti en el canal\n"
+                    "`dm` (`md`, `mensajedirecto`) @u <texto> — MD a un usuario\n"
+                    "`anuncio` (`announce`, `avisar`) — Anuncio oficial\n"
+                    "`backup` (`exportar`, `respaldar`) — Exportar datos\n"
+                    "`stats` (`botinfo`) — Dashboard del bot 📊\n"
+                    "`reload` (`recargar`) [cog] — Recargar cogs 🔄\n"
+                    "`logs` (`log`) [N] — Últimas líneas de log 📋\n"
+                    "`blacklist` (`bl`) / `unblacklist` (`unbl`) — Bloquear usuario\n"
+                    "`blacklistlist` (`bllist`) — Ver bloqueados 🚫\n"
+                    "`aintenance` (`mantenimiento`) — Modo mantenimiento ⚙️\n"
+                    "`aintenancestatus` (`mantstatus`) — Estado mantenimiento\n"
+                    "`slowmode` (`sm`) #canal [N] — Slowmode 🐌\n"
                     "`teamo` — 💕 (secreto)"
+                ),
+                inline=False,
+            )
+        else:
+            embed.add_field(
+                name="🔒 Comandos ocultos",
+                value=(
+                    "Hay comandos de admin y un sistema anti-AFK farming que "
+                    "solo el dueño del bot puede usar. "
+                    "Si se rompe algo, habla con él. 🥖"
                 ),
                 inline=False,
             )

@@ -133,6 +133,11 @@ async def get_aura_gif(points: int) -> str:
     Return a GIF URL that matches the given aura tier.
     Uses curated GIFs from the fallback library for reliable, relevant results.
 
+    Tiers (matched against AuraManager.get_aura_message):
+        >= 3000  -> aura_high  ("BRUTAL")
+        >=    0  -> aura_mid   ("respetable" / "normalillo")
+        <     0  -> aura_low   ("chopped energy")
+
     Args:
         points: Aura score.
 
@@ -140,8 +145,6 @@ async def get_aura_gif(points: int) -> str:
         GIF URL string.
     """
     if points >= 3000:
-        return _get_fallback("aura_high")
-    if points >= 1000:
         return _get_fallback("aura_high")
     if points >= 0:
         return _get_fallback("aura_mid")

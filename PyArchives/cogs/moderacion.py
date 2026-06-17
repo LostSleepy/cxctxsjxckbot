@@ -122,7 +122,8 @@ class Moderacion(commands.Cog):
                 num = int(amount)
                 # +1 to also delete the command message
                 deleted = await ctx.channel.purge(limit=num + 1)
-                count = len(deleted) - 1  # exclude command message
+                # exclude command message; clamp to 0 in case nothing was deleted
+                count = max(0, len(deleted) - 1)
         except (ValueError, discord.DiscordException) as e:
             await ctx.send(
                 '❌ Indica un número o "all".',

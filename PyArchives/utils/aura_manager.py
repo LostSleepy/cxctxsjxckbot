@@ -35,12 +35,40 @@ class AuraManager:
 
     Each user gets a random daily aura value between -1000 and 5000,
     resetting every 24 hours. All mutations are protected by an asyncio.Lock.
+    Compound operations (e.g. modify_aura) take the lock ONCE and perform
+    read+write atomically, so concurrent callers cannot lose updates.
+
+    Internal unlocked helpers (``_get_aura_unlocked`` / ``_set_aura_unlocked``)
+    assume the caller already holds ``self._lock``. asyncio.Lock is NOT
+    reentrant, so public methods and locked helpers split responsibilities.
     """
 
     def __init__(self, file_path: Path) -> None:
         self._file_path: Path = file_path
         self._lock: asyncio.Lock = asyncio.Lock()
         self._data: Dict = _load_json(file_path)
+
+    # ── Internal locked helpers ────────────────────────────────────────────────
+
+    @staticmethod
+    def _today() -> int:
+        """Today's day-bucket (seconds since epoch // 86400)."""
+        return int(time.time() // 86400)
+
+    def _get_aura_unlocked(self, user_id: str, today: int) -> int:
+        """Read today's aura, generating it if missing. Caller holds the lock."""
+        entry = self._data.get(user_id)
+        if entry is None or entry.get("dia") != today:
+            new_value = random.randint(-1000, 5000)
+            self._data[user_id] = {"valor": new_value, "dia": today}
+            _save_json_atomic(self._data, self._file_path)
+            return new_value
+        return entry["valor"]
+
+    def _set_aura_unlocked(self, user_id: str, value: int, today: int) -> None:
+        """Write today's aura. Caller holds the lock."""
+        self._data[user_id] = {"valor": value, "dia": today}
+        _save_json_atomic(self._data, self._file_path)
 
     # ── Public API ────────────────────────────────────────────────────────────
 
@@ -54,25 +82,21 @@ class AuraManager:
         Returns:
             Aura points for today.
         """
-        today = int(time.time() // 86400)
+        today = self._today()
         async with self._lock:
-            entry = self._data.get(user_id)
-            if entry is None or entry.get("dia") != today:
-                new_value = random.randint(-1000, 5000)
-                self._data[user_id] = {"valor": new_value, "dia": today}
-                _save_json_atomic(self._data, self._file_path)
-            return self._data[user_id]["valor"]
+            return self._get_aura_unlocked(user_id, today)
 
     async def set_aura(self, user_id: str, value: int) -> None:
         """Set a user's aura value for today."""
-        today = int(time.time() // 86400)
+        today = self._today()
         async with self._lock:
-            self._data[user_id] = {"valor": value, "dia": today}
-            _save_json_atomic(self._data, self._file_path)
+            self._set_aura_unlocked(user_id, value, today)
 
     async def modify_aura(self, user_id: str, delta: int) -> int:
         """
         Add a delta to the user's aura and return the new value.
+        Atomic: read + write happen inside a single critical section, so
+        concurrent callers cannot lose updates.
 
         Args:
             user_id: Discord user ID as string.
@@ -81,10 +105,12 @@ class AuraManager:
         Returns:
             New aura value.
         """
-        current = await self.get_aura(user_id)
-        new_value = current + delta
-        await self.set_aura(user_id, new_value)
-        return new_value
+        today = self._today()
+        async with self._lock:
+            current = self._get_aura_unlocked(user_id, today)
+            new_value = current + delta
+            self._set_aura_unlocked(user_id, new_value, today)
+            return new_value
 
     async def reset_aura(self, user_id: str) -> None:
         """Remove a user's aura entry entirely."""
@@ -103,7 +129,7 @@ class AuraManager:
         Returns:
             Aura points for today, or None if not yet set.
         """
-        today = int(time.time() // 86400)
+        today = self._today()
         async with self._lock:
             entry = self._data.get(user_id)
             if entry is not None and entry.get("dia") == today:
@@ -123,7 +149,7 @@ class AuraManager:
         Returns:
             List of (user_id, aura_value) tuples sorted descending.
         """
-        today = int(time.time() // 86400)
+        today = self._today()
         async with self._lock:
             ranking: List[Tuple[str, int]] = []
             for uid, entry in self._data.items():
