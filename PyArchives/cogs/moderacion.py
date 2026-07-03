@@ -112,8 +112,8 @@ class Moderacion(commands.Cog):
     # ── Message Purge ────────────────────────────────────────────────────────
     @commands.command(name="purge")
     @commands.has_permissions(manage_messages=True)
-    async def mlshr(self, ctx: commands.Context, amount: str) -> None:
-        """Bulk-delete messages. Usage: cx!mlshr [N | all]"""
+    async def purge(self, ctx: commands.Context, amount: str) -> None:
+        """Bulk-delete messages. Usage: cx!purge [N | all]"""
         try:
             if amount.lower() == "all":
                 deleted = await ctx.channel.purge()
@@ -129,7 +129,7 @@ class Moderacion(commands.Cog):
                 '❌ Indica un número o "all".',
                 delete_after=5,
             )
-            log.warning("Error en mlshr: %s", e)
+            log.warning("Error en purge: %s", e)
             return
 
         await ctx.send(

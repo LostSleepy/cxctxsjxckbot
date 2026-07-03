@@ -176,5 +176,5 @@ class AuraManager:
             return f"😐 Tienes **{points}** puntos de aura. Normalillo."
         return (
             f"📉 **{points}** puntos de aura. "
-            "Tocan fondo. Chopped energy."
+            "Tocan fondo. Mal día."
         )

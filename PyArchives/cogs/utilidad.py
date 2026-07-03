@@ -468,11 +468,9 @@ class Utilidad(commands.Cog):
             value=(
                 "`aura` [@u] — Aura diaria (resetea cada 24h)\n"
                 "`top` (`ranking`, `leaderboard`) — Top 10 de aura\n"
-                "`vc` (`votochopped`) — Vota al chopped (3 votos = 5min)\n"
                 "`chat` (`conversar`) — Habla con Teto (IA)\n"
                 "`de` (`dominio`) — Expansión de Dominio 🏮\n"
                 "`bf` (`blackflash`) — Black Flash (5% duplica aura)\n"
-                "`choppeddaily` (`cd`, `chopped`, `dailychopped`) — Chopped diario 🥖\n"
                 "`castigo` (`cast`) — Castigo aleatorio\n"
                 "`alaba` (`glaze`, `alabanza`, `cumplido`) — Teto alaba 👑\n"
                 "`picha` (`pp`) — Medición científica\n"
@@ -529,20 +527,6 @@ class Utilidad(commands.Cog):
 
         if es_admin:
             embed.add_field(
-                name="🎧 Anti-AFK (admin)",
-                value=(
-                    "**`afkgest`** (`afkg`, `ag`) — Gestión del sistema\n"
-                    "`status` — Estado · `toggle` — Activar/Desactivar\n"
-                    "`timeout <min>` — Cambiar tiempo AFK (1–120)\n"
-                    "`exclude #canal` / `include #canal` — Excluir/Incluir\n"
-                    "`excluded` — Ver canales excluidos\n"
-                    "`whitelist add|remove|list @rol` — Roles exentos\n"
-                    "`strikes [@u]` — Strikes de un usuario\n"
-                    "`striketop` (`farmertop`, `strikes_top`) — Top farmers de la semana"
-                ),
-                inline=False,
-            )
-            embed.add_field(
                 name="👑 Admin (solo tú)",
                 value=(
                     "`muteall` / `unmuteall` — Silenciar/Dessilenciar canal de voz\n"
@@ -557,8 +541,8 @@ class Utilidad(commands.Cog):
                     "`logs` (`log`) [N] — Últimas líneas de log 📋\n"
                     "`blacklist` (`bl`) / `unblacklist` (`unbl`) — Bloquear usuario\n"
                     "`blacklistlist` (`bllist`) — Ver bloqueados 🚫\n"
-                    "`aintenance` (`mantenimiento`) — Modo mantenimiento ⚙️\n"
-                    "`aintenancestatus` (`mantstatus`) — Estado mantenimiento\n"
+                    "`maintenance` (`mantenimiento`) — Modo mantenimiento ⚙️\n"
+                    "`maintenance_status` (`mantstatus`) — Estado mantenimiento\n"
                     "`slowmode` (`sm`) #canal [N] — Slowmode 🐌\n"
                     "`teamo` — 💕 (secreto)"
                 ),
@@ -568,8 +552,7 @@ class Utilidad(commands.Cog):
             embed.add_field(
                 name="🔒 Comandos ocultos",
                 value=(
-                    "Hay comandos de admin y un sistema anti-AFK farming que "
-                    "solo el dueño del bot puede usar. "
+                    "Hay comandos de admin que solo el dueño del bot puede usar. "
                     "Si se rompe algo, habla con él. 🥖"
                 ),
                 inline=False,

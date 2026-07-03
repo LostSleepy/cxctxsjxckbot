@@ -5,7 +5,7 @@
 > *"Horneada con cariño. Desplegada con intención."*
 
 **Un bot de Discord multifuncional inspirado en Kasane Teto.**
-Moderación, entretenimiento, chat con IA, sistema de aura, anti-farmers de voz y caos diario garantizado.
+Moderación, entretenimiento, chat con IA, sistema de aura y caos diario garantizado.
 
 [![Prefijo](https://img.shields.io/badge/Prefijo-cx!-ff69b4?style=for-the-badge&logo=discord&logoColor=white)](.)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](.)
@@ -17,8 +17,6 @@ Moderación, entretenimiento, chat con IA, sistema de aura, anti-farmers de voz 
 
 </div>
 
-> **Nota sobre el sistema anti-AFK:** El bot detecta a quienes se quedan ensordecidos o silenciados más de 15 min en canales de voz (configurable). Les envía un MD de verificación y, si no responden, los desconecta. Todo se administra con `cx!afkgest` (solo el admin).
-
 ---
 
 ## 🎮 Diversión
@@ -27,11 +25,9 @@ Moderación, entretenimiento, chat con IA, sistema de aura, anti-farmers de voz 
 |---|---|---|
 | `cx!aura [@usuario]` | — | Consulta tu aura del día (se resetea cada 24h) |
 | `cx!top` | `ranking`, `leaderboard` | Top 10 de aura del servidor |
-| `cx!vc @usuario` | `votochopped` | Vota para timeout a alguien (3 votos = 5 min) |
 | `cx!chat <mensaje>` | `conversar` | Habla con Teto (IA con Groq) |
 | `cx!de @usuario` | `dominio` | Expansión de Dominio sobre un objetivo |
 | `cx!bf @usuario` | `blackflash` | Black Flash (5% de probabilidad de duplicar aura) |
-| `cx!choppeddaily` | `cd`, `chopped`, `dailychopped` | Declara a alguien chopped en el canal de anuncios |
 | `cx!castigo @usuario` | `cast` | Castigo aleatorio (mute / deaf / kick / timeout) — cooldown 1h |
 | `cx!alaba [@usuario]` | `glaze`, `alabanza`, `cumplido` | Teto halaga a alguien |
 | `cx!picha [@usuario]` | `pp` | Medición científica (resultados varían a diario) |
@@ -50,7 +46,6 @@ Tu puntuación de aura se reinicia cada 24 horas con un nuevo valor aleatorio (-
 - **`cx!aura`** — Consulta tu aura del día.
 - **`cx!top`** — Ranking top 10 del servidor.
 - **`cx!bf @usuario`** — Un Black Flash tiene 5% de probabilidad de duplicar tu aura y anunciarlo.
-- **`cx!vc @usuario`** — Vota para chopped: 3 votos en 5 min = timeout de 5 min.
 
 ---
 
@@ -114,33 +109,9 @@ Teto usa **Groq AI (Llama 3.3 70B Versatile)** para conversar en español.
 
 ---
 
-## 🎧 Sistema Anti-AFK (admin)
-
-Detecta a usuarios que se quedan ensordecidos/silenciados en canales de voz durante demasiado tiempo (15 min por defecto), les envía un MD de verificación y, si no responden en 30s, los desconecta. Lleva un sistema de strikes semanales con reset cada domingo a las 00:00 hora Madrid.
-
-Subcomandos del grupo **`cx!afkgest`** (aliases: `afkg`, `ag`):
-
-| Subcomando | Aliases | Descripción |
-|---|---|---|
-| `cx!afkgest status` | — | Dashboard del estado del sistema |
-| `cx!afkgest toggle` | — | Activa/desactiva la detección en este servidor |
-| `cx!afkgest timeout <min>` | — | Cambia el tiempo AFK (1–120 min) |
-| `cx!afkgest exclude #canal` | — | Excluye un canal de voz de la detección |
-| `cx!afkgest include #canal` | — | Reincluye un canal excluido |
-| `cx!afkgest excluded` | — | Lista canales excluidos |
-| `cx!afkgest whitelist add @rol` | — | Añade un rol a la whitelist (no será detectado) |
-| `cx!afkgest whitelist remove @rol` | — | Quita un rol de la whitelist |
-| `cx!afkgest whitelist list` | — | Lista roles en whitelist |
-| `cx!afkgest strikes [@usuario]` | — | Strikes semanales y totales de un usuario |
-| `cx!afkgest striketop` | `strikes_top`, `farmertop` | Top farmers de la semana |
-
-*Cada domingo 00:00 hora Madrid se publica el ranking semanal en el canal de anuncios y se resetean los strikes.*
-
----
-
 ## 👑 Comandos de Admin
 
-Restringidos a `ADMIN_ID`. Los siguientes comandos también los recoge el **`cx!afkgest`** de la sección anterior.
+Restringidos a `ADMIN_ID`.
 
 | Comando | Aliases | Descripción |
 |---|---|---|
@@ -160,8 +131,8 @@ Restringidos a `ADMIN_ID`. Los siguientes comandos también los recoge el **`cx!
 | `cx!blacklist @usuario` | `bl` | Bloquea a un usuario de usar todos los comandos |
 | `cx!unblacklist @usuario` | `unbl` | Desbloquea a un usuario |
 | `cx!blacklistlist` | `bllist` | Lista usuarios bloqueados |
-| `cx!aintenance` | `mantenimiento` | Activa/desactiva el modo mantenimiento |
-| `cx!aintenancestatus` | `mantstatus` | Consulta el estado del modo mantenimiento |
+| `cx!maintenance` | `mantenimiento` | Activa/desactiva el modo mantenimiento |
+| `cx!maintenance_status` | `mantstatus` | Consulta el estado del modo mantenimiento |
 | `cx!teamo` | — | 💕 (secreto, solo para el creador) |
 
 ---
@@ -170,8 +141,6 @@ Restringidos a `ADMIN_ID`. Los siguientes comandos también los recoge el **`cx!
 
 | Sistema | Descripción |
 |---|---|
-| **🎧 Anti-AFK farming** | Loop cada 20s que detecta usuarios ensordecidos/silenciados, verifica por DM y desconecta. Publica shaming y top semanal. |
-| **💀 Chopped Diario** | Cada 6 horas, Teto elige un miembro aleatorio y lo declara chopped en el canal de anuncios. |
 | **💘 Ship Persistente** | El % de compatibilidad amorosa entre dos usuarios se guarda para siempre. |
 | **🚫 Blacklist** | Usuarios bloqueados no pueden ejecutar comandos (admin exento). |
 | **⚙️ Mantenimiento** | En modo mantenimiento, solo el admin puede usar comandos; el resto recibe un aviso. |
@@ -188,7 +157,7 @@ El bot se configura mediante variables de entorno y `config.py`:
 | `COMMAND_PREFIX` | `cx!` | Prefijo de comandos del bot |
 | `GROQ_API_KEY` | — | API Key de Groq para el chat IA |
 | `ADMIN_ID` | `979869404110159912` | ID de Discord del creador del bot |
-| `CANAL_ANUNCIOS_ID` | `1497645495051354113` | Canal para anuncios y shaming AFK |
+| `CANAL_ANUNCIOS_ID` | `1497645495051354113` | Canal para anuncios |
 | `CANAL_BOT_ID` | `1432506760698003466` | Canal interno del bot |
 | `PORT` | `8080` | Puerto del servidor Flask (keep-alive) |
 
@@ -202,8 +171,6 @@ El bot guarda todo en JSON dentro de `PyArchives/`:
 |---|---|
 | `aura_data.json` | Aura diaria por usuario |
 | `ship_data.json` | % de compatibilidad por pareja |
-| `votos_chopped.json` | Votos activos de chopped |
-| `afk_data.json` | Configuración, tracking, strikes y top weekly del anti-AFK |
 | `blacklist.json` | Usuarios bloqueados |
 | `maintenance.json` | Estado del modo mantenimiento |
 | `backups/` | Snapshots exportados con `cx!backup` |

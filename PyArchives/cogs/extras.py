@@ -18,26 +18,13 @@ from typing import List, Optional, Tuple
 import discord
 from discord.ext import commands
 
-from config import ADMIN_ID, AURA_DATA_PATH, BLACKLIST_PATH, CANAL_ANUNCIOS_ID, MAINTENANCE_PATH, VOTOS_CHOPPED_PATH
+from config import ADMIN_ID, AURA_DATA_PATH, BLACKLIST_PATH, CANAL_ANUNCIOS_ID, MAINTENANCE_PATH
 from utils.aura_manager import AuraManager
 from utils.gif_manager import get_aura_gif, get_giphy_gif
 
 log = logging.getLogger(__name__)
 
 # ── Constants ──────────────────────────────────────────────────────────────────
-
-MENSAJES_CHOPPED: List[str] = [
-    "estás super chopped {mention} 💀",
-    "{mention} eres un chopped de manual, lo siento.",
-    "alguien tenía que decírtelo... {mention}, estás chopped.",
-    "{mention} chopped detected. 🚨",
-    "el bot ha decidido: {mention} está chopped hoy.",
-    "{mention} ni el aura te salva, estás chopped. 📉",
-    "aviso a la comunidad: {mention} está chopped. Proceded con cautela.",
-    "{mention} ¿tú bien? porque el bot dice que no. Chopped total.",
-    "análisis completado. Resultado: {mention} — chopped. 🔬",
-    "{mention} te ha tocado. Estás chopped, asúmelo.",
-]
 
 MENSAJES_BF_RECORD: List[str] = [
     "⚡⚡⚡ **RÉCORD DE DESTELLOS NEGROS** ⚡⚡⚡\n"
@@ -101,36 +88,6 @@ def _parse_tiempo_reminder(tiempo: str) -> Optional[int]:
         return None
     return valor * mult
 
-
-def _cargar_votos(votos_path: Path) -> dict:
-    """Load chopped votes from JSON file."""
-    if not votos_path.exists():
-        return {}
-    try:
-        with open(votos_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except (json.JSONDecodeError, OSError):
-        return {}
-
-
-def _guardar_votos(data: dict, votos_path: Path) -> None:
-    """Save chopped votes to JSON file atomically."""
-    temp = votos_path.with_suffix(".tmp")
-    with open(temp, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-    temp.replace(votos_path)
-
-
-def _limpiar_votos_expirados(votos: dict, ahora: float) -> None:
-    """Remove votes older than 5 minutes from the data."""
-    for uid in list(votos.keys()):
-        votos[uid] = [
-            (vid, ts) for vid, ts in votos[uid] if ahora - ts < 300
-        ]
-        if not votos[uid]:
-            del votos[uid]
-
-
 def _generar_picha(user_id: int) -> Tuple[int, str, str]:
     """
     Generate a scientifically accurate picha measurement.
@@ -165,7 +122,6 @@ class Extras(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.aura_manager = AuraManager(AURA_DATA_PATH)
-        self._votos_chopped: dict = _cargar_votos(VOTOS_CHOPPED_PATH)
         self._start_time: float = time.time()
         self._blacklist: set[str] = self._load_blacklist()
         self._maintenance: bool = self._load_maintenance()
@@ -255,32 +211,6 @@ class Extras(commands.Cog):
         if ctx.author.id == ADMIN_ID:
             ctx.command.reset_cooldown(ctx)
 
-    # ── Chopped Daily (command) ─────────────────────────────────────────────
-    @commands.command(
-        name="choppeddaily",
-        aliases=["cd", "chopped", "dailychopped"],
-    )
-    async def chopped_daily(self, ctx: commands.Context) -> None:
-        """
-        Pick a random server member and publicly declare them chopped.
-        The ritual cannot be stopped. 🥖
-        """
-        canal = self.bot.get_channel(CANAL_ANUNCIOS_ID)
-        if canal is None:
-            await ctx.send("❌ No encuentro el canal de anuncios.")
-            return
-
-        guild = ctx.guild
-        humanos = [m for m in guild.members if not m.bot]
-        if not humanos:
-            await ctx.send("❌ No hay humanos que choppear aquí.")
-            return
-
-        elegido = random.choice(humanos)
-        mensaje = random.choice(MENSAJES_CHOPPED).format(mention=elegido.mention)
-        await canal.send(mensaje)
-        log.info("Chopped diario: %s (por %s)", elegido.display_name, ctx.author.display_name)
-
     # ── AURA ─────────────────────────────────────────────────────────────────
     @commands.command(name="aura")
     @commands.cooldown(1, 30, commands.BucketType.user)
@@ -350,74 +280,6 @@ class Extras(commands.Cog):
         )
         embed.set_footer(text="Resultados actualizados cada 24h.")
         await ctx.send(embed=embed)
-
-    # ── Vote Chopped ─────────────────────────────────────────────────────────
-    @commands.command(name="vc", aliases=["votochopped"])
-    @commands.cooldown(1, 60, commands.BucketType.user)
-    async def voto_chopped(
-        self,
-        ctx: commands.Context,
-        usuario: Optional[discord.Member] = None,
-    ) -> None:
-        """
-        Vote to chopped someone. 3 votes within 5 min = 5 min timeout.
-        Votes are persisted across bot restarts.
-        """
-        await self._bypass_cooldown(ctx)
-        if usuario is None:
-            await ctx.send("❌ Menciona a alguien para votar.")
-            return
-        if usuario.bot:
-            await ctx.send("❌ No puedes votar contra el bot.")
-            return
-        if usuario.id == ctx.author.id:
-            await ctx.send("❌ No puedes votarte a ti mismo.")
-            return
-
-        ahora = time.time()
-        vid = str(usuario.id)
-        _limpiar_votos_expirados(self._votos_chopped, ahora)
-
-        # Check if user already voted against this person
-        votantes_actuales = {uid for uid, _ in self._votos_chopped.get(vid, [])}
-        if ctx.author.id in votantes_actuales:
-            await ctx.send("❌ Ya has votado contra esta persona recientemente.")
-            return
-
-        # Register vote
-        if vid not in self._votos_chopped:
-            self._votos_chopped[vid] = []
-        self._votos_chopped[vid].append((ctx.author.id, ahora))
-        _guardar_votos(self._votos_chopped, VOTOS_CHOPPED_PATH)
-
-        total = len(self._votos_chopped[vid])
-
-        if total >= 3:
-            # Reset votes for this user
-            self._votos_chopped[vid] = []
-            _guardar_votos(self._votos_chopped, VOTOS_CHOPPED_PATH)
-
-            if not ctx.guild.me.guild_permissions.moderate_members:
-                await ctx.send("❌ Me falta el permiso `Moderate Members`.")
-                return
-
-            try:
-                await usuario.timeout(
-                    timedelta(minutes=5),
-                    reason=f"Voto Chopped de {ctx.author}.",
-                )
-                await ctx.send(
-                    f"💀 **CHOPPED.** {usuario.mention} silenciado 5 minutos."
-                )
-            except discord.Forbidden:
-                await ctx.send(
-                    "❌ No tengo permisos para silenciar a esa persona."
-                )
-        else:
-            await ctx.send(
-                f"🗳️ Voto contra {usuario.mention}. "
-                f"**{total}/3** — faltan {3 - total}."
-            )
 
     # ── Castigo (non-blocking) ───────────────────────────────────────────────
     @commands.command(name="castigo", aliases=["cast"])
@@ -779,7 +641,7 @@ class Extras(commands.Cog):
                 "{mention} está brillando y no es el sol. ✨",
                 "{mention} simplemente lo está petando. Punto. 🚀",
                 "{mention} es ese usuario que todos quieren tener en su equipo. 💪",
-                "{mention} está tan chopped que hasta brilla. Espera, eso es bueno. 🎖️",
+                "{mention} está tan brillante que hasta deslumbra. Sigue así. 🎖️",
                 "{mention} ha ascendido a otro nivel. Literal. ⬆️",
             ]
             color = discord.Color.from_rgb(255, 215, 0)
@@ -919,8 +781,7 @@ class Extras(commands.Cog):
             await ctx.send("❌ Usa: `!giveaura @usuario <cantidad>` (negativo para quitar)")
             return
 
-        await self.aura_manager.modify_aura(str(usuario.id), cantidad)
-        new_aura = await self.aura_manager.get_aura(str(usuario.id))
+        new_aura = await self.aura_manager.modify_aura(str(usuario.id), cantidad)
 
         emoji = "➕" if cantidad >= 0 else "➖"
         embed = discord.Embed(
@@ -955,7 +816,8 @@ class Extras(commands.Cog):
         except Exception:
             data["aura"] = {"error": "No se pudo leer"}
 
-        backup_dir = Path("backups")
+        from config import BASE_DIR
+        backup_dir = BASE_DIR / "backups"
         backup_dir.mkdir(exist_ok=True)
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         backup_path = backup_dir / f"teto_backup_{timestamp}.json"
@@ -1189,7 +1051,7 @@ class Extras(commands.Cog):
 
 
     # ── Maintenance (admin only) ──────────────────────────────────────────────
-    @commands.command(name="maintenance", aliases=["aintenance", "mantenimiento"])
+    @commands.command(name="maintenance", aliases=["mantenimiento"])
     async def maintenance_toggle(self, ctx: commands.Context) -> None:
         """[Admin] Activa/desactiva el modo mantenimiento."""
         if ctx.author.id != ADMIN_ID:
@@ -1214,7 +1076,7 @@ class Extras(commands.Cog):
 
     @commands.command(
         name="maintenance_status",
-        aliases=["aintenancestatus", "mantstatus"],
+        aliases=["maintenancestatus", "mantstatus"],
     )
     async def maintenance_status(self, ctx: commands.Context) -> None:
         """[Admin] Consulta el estado del modo mantenimiento."""
