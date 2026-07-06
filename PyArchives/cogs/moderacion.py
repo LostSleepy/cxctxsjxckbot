@@ -214,14 +214,6 @@ class Moderacion(commands.Cog):
 
         try:
             await member.move_to(None)
-            # Try to DM the user so they know why
-            try:
-                await member.send(
-                    "👢 Has sido expulsado automáticamente del canal de voz "
-                    "porque estás en la voice ban list del servidor."
-                )
-            except discord.Forbidden:
-                pass
         except discord.Forbidden:
             log.warning(
                 "No tengo permisos para expulsar a %s (baneado de voz)",
