@@ -133,6 +133,7 @@ Restricted to `ADMIN_ID`.
 | `cx!blacklistlist` | `bllist` | List blocked users |
 | `cx!maintenance` | — | Toggle maintenance mode |
 | `cx!maintenance_status` | `mantstatus` | Show maintenance mode state |
+| `cx!vckick [@user]` | `vcsoftban` | Toggle a user on/off the voice ban list (auto-kick on voice join) |
 | `cx!teamo` | — | 💕 (secret, creator only) |
 
 ---
@@ -142,6 +143,7 @@ Restricted to `ADMIN_ID`.
 | System | Description |
 |---|---|
 | **💘 Persistent Ship** | Love compatibility % between two users is saved forever. |
+| **👢 Voice Ban** | Users on the voice ban list are automatically kicked from any voice channel they join. |
 | **🚫 Blacklist** | Blocked users can't run any command (admin exempt). |
 | **⚙️ Maintenance** | In maintenance mode only the admin can use commands; others get a notice. |
 
@@ -172,6 +174,7 @@ All state lives in JSON files under `PyArchives/`:
 | `aura_data.json` | Daily aura per user |
 | `ship_data.json` | Compatibility % per couple |
 | `blacklist.json` | Blocked user IDs |
+| `vcban.json` | Voice ban list (auto-kick on voice join) |
 | `maintenance.json` | Maintenance mode flag |
 | `backups/` | Snapshots exported via `cx!backup` |
 

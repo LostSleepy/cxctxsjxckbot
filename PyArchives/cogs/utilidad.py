@@ -544,6 +544,7 @@ class Utilidad(commands.Cog):
                     "`maintenance` (`mantenimiento`) — Modo mantenimiento ⚙️\n"
                     "`maintenance_status` (`mantstatus`) — Estado mantenimiento\n"
                     "`slowmode` (`sm`) #canal [N] — Slowmode 🐌\n"
+                    "`vckick` (`vcsoftban`) [@u] — Voice ban toggle (auto-kick en llamada)\n"
                     "`teamo` — 💕 (secreto)"
                 ),
                 inline=False,

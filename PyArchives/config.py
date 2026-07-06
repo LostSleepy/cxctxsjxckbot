@@ -24,6 +24,7 @@ AURA_DATA_PATH: Path = BASE_DIR / "aura_data.json"
 SHIP_DATA_PATH: Path = BASE_DIR / "ship_data.json"
 BLACKLIST_PATH: Path = BASE_DIR / "blacklist.json"
 MAINTENANCE_PATH: Path = BASE_DIR / "maintenance.json"
+VCBAN_PATH: Path = BASE_DIR / "vcban.json"
 
 # --- APIs ---
 GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")

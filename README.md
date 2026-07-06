@@ -133,6 +133,7 @@ Restringidos a `ADMIN_ID`.
 | `cx!blacklistlist` | `bllist` | Lista usuarios bloqueados |
 | `cx!maintenance` | `mantenimiento` | Activa/desactiva el modo mantenimiento |
 | `cx!maintenance_status` | `mantstatus` | Consulta el estado del modo mantenimiento |
+| `cx!vckick [@usuario]` | `vcsoftban` | Añade/quita un usuario de la lista de voice ban (auto-expulsión al entrar a llamada) |
 | `cx!teamo` | — | 💕 (secreto, solo para el creador) |
 
 ---
@@ -142,6 +143,7 @@ Restringidos a `ADMIN_ID`.
 | Sistema | Descripción |
 |---|---|
 | **💘 Ship Persistente** | El % de compatibilidad amorosa entre dos usuarios se guarda para siempre. |
+| **👢 Voice Ban** | Usuarios en la voice ban list son expulsados automáticamente al entrar a cualquier canal de voz. |
 | **🚫 Blacklist** | Usuarios bloqueados no pueden ejecutar comandos (admin exento). |
 | **⚙️ Mantenimiento** | En modo mantenimiento, solo el admin puede usar comandos; el resto recibe un aviso. |
 
@@ -172,6 +174,7 @@ El bot guarda todo en JSON dentro de `PyArchives/`:
 | `aura_data.json` | Aura diaria por usuario |
 | `ship_data.json` | % de compatibilidad por pareja |
 | `blacklist.json` | Usuarios bloqueados |
+| `vcban.json` | Voice ban list (auto-kick en llamada) |
 | `maintenance.json` | Estado del modo mantenimiento |
 | `backups/` | Snapshots exportados con `cx!backup` |
 

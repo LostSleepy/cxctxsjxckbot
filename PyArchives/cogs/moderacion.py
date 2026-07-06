@@ -1,15 +1,17 @@
 """
 Moderation commands cog for the Teto Discord bot.
-Includes voice roulette, AngelGuard timeout remover, and message purge.
+Includes voice roulette, AngelGuard timeout remover, message purge,
+and the voice softban toggle system.
 """
+import json
 import logging
 import random
-from typing import List
+from typing import List, Set
 
 import discord
 from discord.ext import commands
 
-from config import ADMIN_ID
+from config import ADMIN_ID, VCBAN_PATH
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +21,28 @@ class Moderacion(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+        self._vcban: Set[str] = self._load_vcban()
 
+    # ── Voice ban persistence ─────────────────────────────────────────────────
+    def _load_vcban(self) -> Set[str]:
+        """Load voice-banned user IDs from JSON."""
+        if not VCBAN_PATH.exists():
+            return set()
+        try:
+            with open(VCBAN_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return set(data.get("banned", []))
+        except (json.JSONDecodeError, OSError):
+            return set()
+
+    def _save_vcban(self) -> None:
+        """Save voice-banned user IDs to JSON atomically."""
+        temp = VCBAN_PATH.with_suffix(".tmp")
+        with open(temp, "w", encoding="utf-8") as f:
+            json.dump({"banned": list(self._vcban)}, f, indent=2)
+        temp.replace(VCBAN_PATH)
+
+    # ── Admin Cooldown Bypass ────────────────────────────────────────────────
     async def _bypass_cooldown(self, ctx: commands.Context) -> None:
         """Remove cooldown for the configured admin."""
         if ctx.author.id == ADMIN_ID:
@@ -72,6 +95,140 @@ class Moderacion(commands.Cog):
         except discord.DiscordException as e:
             await ctx.send(f"⚠️ Error inesperado: {e}")
             log.error("Error en ruleta: %s", e, exc_info=True)
+
+    # ── Voice SoftBan (admin only) ─────────────────────────────────────────
+    @commands.command(name="vckick", aliases=["vcsoftban"])
+    async def vc_kick(self, ctx: commands.Context, usuario: discord.Member = None) -> None:
+        """[Admin] Toggle voice ban para un usuario.
+        Si está en la lista, lo elimina. Si no, lo añade.
+        Los usuarios en la lista son expulsados automáticamente
+        cada vez que intenten unirse a un canal de voz.
+
+        Uso: `cx!vckick`         — muestra la lista
+             `cx!vckick @usuario` — añade/remueve
+        """
+        if ctx.author.id != ADMIN_ID:
+            return
+
+        # ── Show list (no args) ──────────────────────────────────────────
+        if usuario is None:
+            if not self._vcban:
+                await ctx.send("📋 No hay usuarios baneados de voz.")
+                return
+
+            lines = []
+            guild = ctx.guild
+            for uid in sorted(self._vcban):
+                member = guild.get_member(int(uid)) if guild else None
+                name = member.display_name if member else f"ID: {uid}"
+                lines.append(f"• {name} (`{uid}`)")
+
+            embed = discord.Embed(
+                title=f"👢 Voice Ban List ({len(self._vcban)})",
+                description="\n".join(lines),
+                color=discord.Color.red(),
+            )
+            await ctx.send(embed=embed)
+            return
+
+        # ── Validate member ──────────────────────────────────────────────
+        if usuario.bot:
+            await ctx.send("❌ No puedes banear bots de voz.")
+            return
+
+        uid = str(usuario.id)
+
+        # ── Toggle ───────────────────────────────────────────────────────
+        if uid in self._vcban:
+            self._vcban.discard(uid)
+            self._save_vcban()
+            # Also kick them right now if they're in voice
+            if usuario.voice:
+                try:
+                    canal = usuario.voice.channel
+                    await usuario.move_to(None)
+                    await ctx.send(
+                        f"✅ {usuario.mention} removido de la voice ban list "
+                        f"y expulsado de **{canal.name}**."
+                    )
+                except discord.DiscordException:
+                    pass
+            else:
+                await ctx.send(
+                    f"✅ {usuario.mention} removido de la voice ban list."
+                )
+        else:
+            self._vcban.add(uid)
+            self._save_vcban()
+            # Kick them immediately if they're in voice
+            if usuario.voice:
+                try:
+                    canal = usuario.voice.channel
+                    await usuario.move_to(None)
+                    await ctx.send(
+                        f"👢 {usuario.mention} añadido a la voice ban list "
+                        f"y expulsado de **{canal.name}**."
+                    )
+                except discord.Forbidden:
+                    await ctx.send(
+                        f"👢 {usuario.mention} añadido a la voice ban list. "
+                        "Pero no tengo permisos para expulsarlo ahora."
+                    )
+                except discord.DiscordException:
+                    await ctx.send(
+                        f"👢 {usuario.mention} añadido a la voice ban list."
+                    )
+            else:
+                await ctx.send(
+                    f"👢 {usuario.mention} añadido a la voice ban list. "
+                    "Será expulsado automáticamente si se conecta a un canal."
+                )
+
+    # ── Voice listener: auto-kick banned users ────────────────────────────────
+    @commands.Cog.listener()
+    async def on_voice_state_update(
+        self,
+        member: discord.Member,
+        before: discord.VoiceState,
+        after: discord.VoiceState,
+    ) -> None:
+        """Automatically kick voice-banned users when they join a channel."""
+        # Only act if they JOINED a voice channel (after.channel is not None)
+        if after.channel is None:
+            return
+
+        uid = str(member.id)
+        if uid not in self._vcban:
+            return
+
+        # Don't kick the admin by accident
+        if member.id == ADMIN_ID:
+            return
+
+        log.info(
+            "Auto-kick: %s (ID: %s) intentó unirse a %s — está en la voice ban list",
+            member.display_name,
+            member.id,
+            after.channel.name,
+        )
+
+        try:
+            await member.move_to(None)
+            # Try to DM the user so they know why
+            try:
+                await member.send(
+                    "👢 Has sido expulsado automáticamente del canal de voz "
+                    "porque estás en la voice ban list del servidor."
+                )
+            except discord.Forbidden:
+                pass
+        except discord.Forbidden:
+            log.warning(
+                "No tengo permisos para expulsar a %s (baneado de voz)",
+                member.display_name,
+            )
+        except discord.DiscordException as e:
+            log.error("Error auto-kicking %s: %s", member.display_name, e)
 
     # ── AngelGuard (remove all timeouts) ─────────────────────────────────────
     @commands.command(name="angelguard")
