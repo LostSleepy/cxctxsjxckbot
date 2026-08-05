@@ -8,6 +8,12 @@ Fuentes (todas públicas y verificadas):
   • fortnite.gg/api/items.json      → mapeo id oficial → id fngg (caché 24 h)
   • fortnite.gg/item-details?id=X   → ficha completa (precio, origen, wishlists, rating, vídeo)
   • fortnite-api.com/v2/shop        → tienda diaria (en español con language=es)
+
+Vídeo del baile: el CDN de fngg (fnggcdn.com) no lo reproduce el reproductor
+inline de Discord. Si FNGG_VIDEO_PROXY_URL está configurada (Cloudflare
+Worker gratuito, ver cloudflare-worker/), el bot envía el enlace del Worker,
+que re-sirve el mp4 con headers correctos → Discord lo reproduce. El bot
+NUNCA descarga el vídeo (cero tráfico en el host).
 """
 import asyncio
 import logging
@@ -20,6 +26,8 @@ import aiohttp
 import discord
 from discord.ext import commands
 
+from config import FNGG_VIDEO_PROXY_URL
+
 log = logging.getLogger(__name__)
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
@@ -29,6 +37,15 @@ FNGG_ITEMS_JSON = "https://fortnite.gg/api/items.json"
 FNGG_ITEM_DETAILS = "https://fortnite.gg/item-details"
 FNGG_IMG = "https://fortnite.gg/img/items/{}/icon.jpg"
 FNGG_VIDEO = "https://fnggcdn.com/items/{}/video.mp4"
+
+# El Worker proxy re-sirve los vídeos desde el dominio propio de Cloudflare
+# para que Discord los reproduzca inline (el CDN de fngg se queda congelado).
+def _video_url(fngg_id: str) -> str:
+    """URL del vídeo: vía Cloudflare Worker si está configurado, si no directa."""
+    if FNGG_VIDEO_PROXY_URL:
+        base = FNGG_VIDEO_PROXY_URL.rstrip("/")
+        return f"{base}/items/{fngg_id}/video.mp4"
+    return FNGG_VIDEO.format(fngg_id)
 
 BROWSER_HEADERS = {
     "User-Agent": (
@@ -366,10 +383,17 @@ class Fortnite(commands.Cog):
             if not video and details_failed and fngg_id:
                 video = FNGG_VIDEO.format(fngg_id)
             if video:
-                clean_video = video.split("?")[0]  # quitar cache-buster (?4) para Discord
+                # A través del Worker proxy si está configurado → Discord lo reproduce inline.
+                video_url = _video_url(fngg_id)
+                # Etiqueta según la categoría del cosmético: "Baile" para emotes,
+                # la categoría localizada para el resto, y "Video" como universal.
+                if ctype and ctype != "?":
+                    video_label = "Baile" if ctype == "Emote" else ctype
+                else:
+                    video_label = "Video"
                 embed.add_field(
-                    name="🎬 Baile",
-                    value=f"[Ver el vídeo]({clean_video}) · o usa `cx!fn video {name}`",
+                    name=f"🎬 {video_label}",
+                    value=f"[Ver el vídeo]({video_url}) · o usa `cx!fn video {name}`",
                     inline=False,
                 )
 
@@ -403,7 +427,7 @@ class Fortnite(commands.Cog):
 
     @fn.command(name="video", aliases=["v"])
     async def fn_video(self, ctx: commands.Context, *, query: str) -> None:
-        """🎬 Envía el enlace al vídeo del baile (Discord lo reproduce)."""
+        """🎬 Vídeo del baile: enlace vía Cloudflare Worker (0 descargas en el host)."""
         async with ctx.typing():
             cosmetic, _lang = await self._search_cosmetic(query)
             if not cosmetic:
@@ -415,15 +439,7 @@ class Fortnite(commands.Cog):
                 return
 
             fngg_id = await self._get_fngg_id(cosmetic.get("id", ""))
-            video = None
-            if fngg_id:
-                details = await self._get_item_details(int(fngg_id))
-                if details is not None and details.get("video"):
-                    video = details["video"]
-                elif details is None:
-                    video = FNGG_VIDEO.format(fngg_id)
-
-            if not video:
+            if not fngg_id:
                 await ctx.send(
                     embed=self._error_embed(
                         "❌ Sin vídeo",
@@ -432,7 +448,20 @@ class Fortnite(commands.Cog):
                 )
                 return
 
-            await ctx.send(video.split("?")[0])
+            # Comprobar si el ítem tiene vídeo (salvo que fngg esté caído → asumir que sí).
+            details = await self._get_item_details(int(fngg_id))
+            if details is not None and not details.get("video"):
+                await ctx.send(
+                    embed=self._error_embed(
+                        "❌ Sin vídeo",
+                        f"**{cosmetic.get('name', query)}** no tiene vídeo disponible.",
+                    )
+                )
+                return
+
+            # El Worker proxy trafica con fnggcdn; el bot solo envía el enlace.
+            # Si FNGG_VIDEO_PROXY_URL está vacío, cae al enlace directo de fnggcdn.
+            await ctx.send(_video_url(fngg_id))
 
     @fn.command(name="shop", aliases=["tienda"])
     async def fn_shop(self, ctx: commands.Context) -> None:

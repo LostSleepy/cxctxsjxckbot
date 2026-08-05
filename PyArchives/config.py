@@ -31,6 +31,12 @@ GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
 GROQ_MODEL: str = "llama-3.3-70b-versatile"
 GROQ_MAX_TOKENS: int = 200
 
+# --- Fortnite ---
+# URL del Cloudflare Worker que re-sirve los vídeos de fngg para que
+# Discord los reproduzca inline (p. ej. https://mi-worker.tu-sub.workers.dev).
+# Si está vacío, el bot envía el enlace directo de fnggcdn como fallback.
+FNGG_VIDEO_PROXY_URL: str = os.getenv("FNGG_VIDEO_PROXY_URL", "").rstrip("/")
+
 # --- Web Server ---
 PORT: int = int(os.getenv("PORT", "8080"))
 

@@ -96,7 +96,7 @@ Teto uses **Groq AI (Llama 3.3 70B Versatile)** to chat in Spanish.
 | `cx!catfact` | — | Cat Facts | Random cat fact 🐱 |
 | `cx!definir <word>` | `dict` | FreeDictionaryAPI | Word definition lookup (ES → EN fallback) 📖 |
 | `cx!fn <name>` | `fortnite` | Fortnite-API + Fortnite.GG | Fortnite cosmetic info card in Fortnite.GG style: image, price, origin, wishlists, rating and dance link. Outputs Spanish or English depending on the search language 🎮 |
-| `cx!fn video <name>` | `fn v` | Fortnite.GG (fngg) | Dance video played inline in chat 🎬 |
+| `cx!fn video <name>` | `fn v` | Fortnite.GG (fngg) + Worker | Dance video played inline in Discord (requires `FNGG_VIDEO_PROXY_URL`, see `cloudflare-worker/`) 🎬 |
 | `cx!fn shop` | `fn tienda` | Fortnite-API | Daily Fortnite item shop (in Spanish) 🛒 |
 | `cx!teto` | — | — | 🥖 |
 
@@ -161,6 +161,7 @@ Configured via environment variables and `config.py`:
 | `DISCORD_TOKEN` | — | Discord bot token (required) |
 | `COMMAND_PREFIX` | `cx!` | Bot command prefix |
 | `GROQ_API_KEY` | — | Groq API key for AI chat |
+| `FNGG_VIDEO_PROXY_URL` | — | URL of your Cloudflare Worker that re-serves fngg videos (see `cloudflare-worker/`) — makes Discord play them inline with zero downloads on the host |
 | `ADMIN_ID` | `979869404110159912` | Bot creator's Discord user ID |
 | `CANAL_ANUNCIOS_ID` | `1497645495051354113` | Announcements channel |
 | `CANAL_BOT_ID` | `1432506760698003466` | Internal bot channel |

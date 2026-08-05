@@ -96,7 +96,7 @@ Teto usa **Groq AI (Llama 3.3 70B Versatile)** para conversar en español.
 | `cx!catfact` | `gatofact`, `factcat` | Cat Facts | Dato curioso aleatorio sobre gatos 🐱 |
 | `cx!definir <palabra>` | `define`, `dict` | FreeDictionaryAPI | Definición de una palabra (ES → EN fallback) 📖 |
 | `cx!fn <nombre>` | `fortnite` | Fortnite-API + Fortnite.GG | Ficha de cosmético estilo Fortnite.GG: imagen, precio, origen, wishlists, rating y enlace al baile. Salida en español o inglés según el idioma de búsqueda 🎮 |
-| `cx!fn video <nombre>` | `fn v` | Fortnite.GG (fngg) | Vídeo del baile reproducido en el chat 🎬 |
+| `cx!fn video <nombre>` | `fn v` | Fortnite.GG (fngg) + Worker | Vídeo del baile reproducido inline en Discord (requiere `FNGG_VIDEO_PROXY_URL`, ver `cloudflare-worker/`) 🎬 |
 | `cx!fn shop` | `fn tienda` | Fortnite-API | Tienda diaria de Fortnite en español 🛒 |
 | `cx!teto` | — | — | 🥖 |
 
@@ -161,6 +161,7 @@ El bot se configura mediante variables de entorno y `config.py`:
 | `DISCORD_TOKEN` | — | Token del bot de Discord (requerido) |
 | `COMMAND_PREFIX` | `cx!` | Prefijo de comandos del bot |
 | `GROQ_API_KEY` | — | API Key de Groq para el chat IA |
+| `FNGG_VIDEO_PROXY_URL` | — | URL de tu Cloudflare Worker que re-sirve los vídeos de fngg (ver `cloudflare-worker/`) — hace que Discord los reproduzca inline sin descargar en el host |
 | `ADMIN_ID` | `979869404110159912` | ID de Discord del creador del bot |
 | `CANAL_ANUNCIOS_ID` | `1497645495051354113` | Canal para anuncios |
 | `CANAL_BOT_ID` | `1432506760698003466` | Canal interno del bot |
