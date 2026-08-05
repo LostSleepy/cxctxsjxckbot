@@ -95,6 +95,9 @@ Teto uses **Groq AI (Llama 3.3 70B Versatile)** to chat in Spanish.
 | `cx!receta <name>` | `recipe` | TheMealDB | Food recipe with ingredients 🍳 |
 | `cx!catfact` | — | Cat Facts | Random cat fact 🐱 |
 | `cx!definir <word>` | `dict` | FreeDictionaryAPI | Word definition lookup (ES → EN fallback) 📖 |
+| `cx!fn <name>` | `fortnite` | Fortnite-API + Fortnite.GG | Fortnite cosmetic info card in Fortnite.GG style: image, price, origin, wishlists, rating and dance link. Outputs Spanish or English depending on the search language 🎮 |
+| `cx!fn video <name>` | `fn v` | Fortnite.GG (fngg) | Dance video played inline in chat 🎬 |
+| `cx!fn shop` | `fn tienda` | Fortnite-API | Daily Fortnite item shop (in Spanish) 🛒 |
 | `cx!teto` | — | — | 🥖 |
 
 ---

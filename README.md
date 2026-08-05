@@ -95,6 +95,9 @@ Teto usa **Groq AI (Llama 3.3 70B Versatile)** para conversar en español.
 | `cx!receta <nombre>` | `recipe`, `comida` | TheMealDB | Receta de comida con ingredientes 🍳 |
 | `cx!catfact` | `gatofact`, `factcat` | Cat Facts | Dato curioso aleatorio sobre gatos 🐱 |
 | `cx!definir <palabra>` | `define`, `dict` | FreeDictionaryAPI | Definición de una palabra (ES → EN fallback) 📖 |
+| `cx!fn <nombre>` | `fortnite` | Fortnite-API + Fortnite.GG | Ficha de cosmético estilo Fortnite.GG: imagen, precio, origen, wishlists, rating y enlace al baile. Salida en español o inglés según el idioma de búsqueda 🎮 |
+| `cx!fn video <nombre>` | `fn v` | Fortnite.GG (fngg) | Vídeo del baile reproducido en el chat 🎬 |
+| `cx!fn shop` | `fn tienda` | Fortnite-API | Tienda diaria de Fortnite en español 🛒 |
 | `cx!teto` | — | — | 🥖 |
 
 ---

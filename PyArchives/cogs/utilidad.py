@@ -516,6 +516,16 @@ class Utilidad(commands.Cog):
             inline=False,
         )
         embed.add_field(
+            name="🎮 Fortnite",
+            value=(
+                "`fn <nombre>` (`fortnite`) — Ficha completa con imagen: precio, origen, wishlists, rating 🎮\n"
+                "`fn video <nombre>` — Vídeo del baile reproducido en el chat 🎬\n"
+                "`fn shop` (`tienda`) — Tienda de hoy 🛒\n"
+                "Acepta nombres en español: `cx!fn video escenario`."
+            ),
+            inline=False,
+        )
+        embed.add_field(
             name="🛡️ Moderación",
             value=(
                 "`purge` [N|all] — Limpiar mensajes (gestionar mensajes)\n"
