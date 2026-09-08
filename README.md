@@ -8,7 +8,7 @@
 Moderación, entretenimiento, chat con IA, sistema de aura y caos diario garantizado.
 
 [![Prefijo](https://img.shields.io/badge/Prefijo-cx!-ff69b4?style=for-the-badge&logo=discord&logoColor=white)](.)
-[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](.)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](.)
 [![discord.py](https://img.shields.io/badge/discord.py-2.x-5865F2?style=for-the-badge&logo=discord&logoColor=white)](.)
 
 ---
@@ -19,13 +19,61 @@ Moderación, entretenimiento, chat con IA, sistema de aura y caos diario garanti
 
 ---
 
+## 🚀 Instalación
+
+Requisitos: **Python 3.11+**.
+
+```bash
+git clone <tu-repo>
+cd cxctxsjxckbot
+
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# Linux/macOS:
+# source .venv/bin/activate
+
+pip install -r requirements.txt
+cp .env.example .env   # y rellena tus claves
+```
+
+## ▶️ Ejecución
+
+```bash
+python PyArchives/main.py
+```
+
+El bot carga los 9 cogs, arranca el servidor de keep-alive (si `ENABLE_WEB=1`)
+y se conecta a Discord. Sin `DISCORD_TOKEN` no arranca (falla con mensaje claro).
+
+## ⚙️ Configuración
+
+Toda la configuración vive en variables de entorno (ver `.env.example`).
+`PyArchives/core/settings.py` las valida: un valor inválido **no tumba el bot**,
+usa el valor por defecto y lo avisa en el log.
+
+| Variable | Por defecto | Descripción |
+|---|---|---|
+| `DISCORD_TOKEN` | — | Token del bot de Discord (requerido) |
+| `GROQ_API_KEY` | — | API Key de Groq para el chat IA (requerido para `cx!chat`) |
+| `COMMAND_PREFIX` | `cx!` | Prefijo de comandos |
+| `ADMIN_ID` | `979869404110159912` | ID del creador: bypass de cooldowns, blacklist y mantenimiento |
+| `CANAL_ANUNCIOS_ID` | `1497645495051354113` | Canal de anuncios y récords de Black Flash (`0` = desactivado) |
+| `CANAL_BOT_ID` | `1432506760698003466` | Canal interno (informativo) |
+| `GROQ_MODEL` | `llama-3.3-70b-versatile` | Modelo de Groq |
+| `GROQ_MAX_TOKENS` | `200` | Máx. tokens por respuesta (16–1024) |
+| `ENABLE_WEB` | `1` | Servidor keep-alive para hosting gratuito (`0` = desactivado) |
+| `PORT` | `8080` | Puerto del servidor web |
+
+---
+
 ## 🎮 Diversión
 
 | Comando | Aliases | Descripción |
 |---|---|---|
 | `cx!aura [@usuario]` | — | Consulta tu aura del día (se resetea cada 24h) |
 | `cx!top` | `ranking`, `leaderboard` | Top 10 de aura del servidor |
-| `cx!chat <mensaje>` | `conversar` | Habla con Teto (IA con Groq) |
+| `cx!chat <mensaje>` | `conversar` | Habla con Teto (IA con Groq, máx. 500 caracteres) |
 | `cx!de @usuario` | `dominio` | Expansión de Dominio sobre un objetivo |
 | `cx!bf @usuario` | `blackflash` | Black Flash (5% de probabilidad de duplicar aura) |
 | `cx!castigo @usuario` | `cast` | Castigo aleatorio (mute / deaf / kick / timeout) — cooldown 1h |
@@ -57,7 +105,7 @@ Teto usa **Groq AI (Llama 3.3 70B Versatile)** para conversar en español.
 |---|---|---|
 | `cx!chat <mensaje>` | `conversar` | Habla con Teto con su personalidad única |
 
-*Cooldown de 3s entre mensajes de IA.*
+*Cooldown de 3s entre mensajes de IA. Sin `GROQ_API_KEY` el comando avisa que la IA no está disponible.*
 
 ---
 
@@ -73,7 +121,7 @@ Teto usa **Groq AI (Llama 3.3 70B Versatile)** para conversar en español.
 | `cx!hora` | — | Reloj mundial — Madrid, Nueva York y Japón |
 | `cx!servidor` | `server`, `serverinfo`, `guild`, `guildinfo` | Info completa del servidor |
 | `cx!rol [@rol]` | `role`, `roleinfo`, `rolinfo` | Info detallada de un rol |
-| `cx!recordar <tiempo> <texto>` | `rem`, `reminder` | Recordatorio (ej: `cx!recordar 10m sacar al perro`) |
+| `cx!recordar <tiempo> <texto>` | `rem`, `reminder` | Recordatorio: `30s`, `10m`, `2h`, `1d` (máx. 24h). Ej: `cx!recordar 10m sacar al perro` |
 
 ---
 
@@ -95,8 +143,8 @@ Teto usa **Groq AI (Llama 3.3 70B Versatile)** para conversar en español.
 | `cx!receta <nombre>` | `recipe`, `comida` | TheMealDB | Receta de comida con ingredientes 🍳 |
 | `cx!catfact` | `gatofact`, `factcat` | Cat Facts | Dato curioso aleatorio sobre gatos 🐱 |
 | `cx!definir <palabra>` | `define`, `dict` | FreeDictionaryAPI | Definición de una palabra (ES → EN fallback) 📖 |
-| `cx!fn <nombre>` | `fortnite` | Fortnite-API + Fortnite.GG | Ficha de cosmético estilo Fortnite.GG: imagen, precio, origen, wishlists, rating y enlace al baile. Salida en español o inglés según el idioma de búsqueda 🎮 |
-| `cx!fn video <nombre>` | `fn v` | Fortnite.GG (fngg) + Worker | Vídeo del baile reproducido inline en Discord (requiere `FNGG_VIDEO_PROXY_URL`, ver `cloudflare-worker/`) 🎬 |
+| `cx!fn <nombre>` | `fortnite` | Fortnite-API + Fortnite.GG | Ficha de cosmético estilo Fortnite.GG: imagen, precio, origen, wishlists, rating y enlace al baile 🎮 |
+| `cx!fn video <nombre>` | `fn v` | Fortnite-API + Fortnite.GG | Vídeo del baile: YouTube inline si existe, si no enlace directo de fngg 🎬 |
 | `cx!fn shop` | `fn tienda` | Fortnite-API | Tienda diaria de Fortnite en español 🛒 |
 | `cx!teto` | — | — | 🥖 |
 
@@ -106,7 +154,8 @@ Teto usa **Groq AI (Llama 3.3 70B Versatile)** para conversar en español.
 
 | Comando | Aliases | Descripción |
 |---|---|---|
-| `cx!purge [N \| all]` | — | Limpieza masiva de mensajes (requiere `manage_messages`) |
+| `cx!purge N` | — | Borra N mensajes (1–100, requiere `manage_messages`) |
+| `cx!purge all` | — | Borra el canal por tandas (máx. 100, **pide escribir `confirmar`**) |
 | `cx!ruleta` | `ruleta_rusa` | Kick aleatorio del canal de voz (cooldown 1h) |
 | `cx!angelguard` | — | Emergencia: levanta todos los timeouts del servidor |
 
@@ -114,7 +163,7 @@ Teto usa **Groq AI (Llama 3.3 70B Versatile)** para conversar en español.
 
 ## 👑 Comandos de Admin
 
-Restringidos a `ADMIN_ID`.
+Restringidos a `ADMIN_ID` (fallan en silencio para el resto).
 
 | Comando | Aliases | Descripción |
 |---|---|---|
@@ -130,7 +179,7 @@ Restringidos a `ADMIN_ID`.
 | `cx!backup` | `exportar`, `respaldar` | Exporta todos los datos del bot a JSON |
 | `cx!stats` | `botinfo` | Dashboard completo del estado del bot |
 | `cx!reload [cog]` | `recargar` | Recarga un cog concreto o todos |
-| `cx!logs [N=15]` | `log` | Muestra las últimas líneas del log |
+| `cx!logs [N=15]` | `log` | Muestra las últimas líneas del log (máx. 40) |
 | `cx!blacklist @usuario` | `bl` | Bloquea a un usuario de usar todos los comandos |
 | `cx!unblacklist @usuario` | `unbl` | Desbloquea a un usuario |
 | `cx!blacklistlist` | `bllist` | Lista usuarios bloqueados |
@@ -152,26 +201,9 @@ Restringidos a `ADMIN_ID`.
 
 ---
 
-## ⚙️ Configuración
-
-El bot se configura mediante variables de entorno y `config.py`:
-
-| Variable | Por defecto | Descripción |
-|---|---|---|
-| `DISCORD_TOKEN` | — | Token del bot de Discord (requerido) |
-| `COMMAND_PREFIX` | `cx!` | Prefijo de comandos del bot |
-| `GROQ_API_KEY` | — | API Key de Groq para el chat IA |
-| `FNGG_VIDEO_PROXY_URL` | — | URL de tu Cloudflare Worker que re-sirve los vídeos de fngg (ver `cloudflare-worker/`) — hace que Discord los reproduzca inline sin descargar en el host |
-| `ADMIN_ID` | `979869404110159912` | ID de Discord del creador del bot |
-| `CANAL_ANUNCIOS_ID` | `1497645495051354113` | Canal para anuncios |
-| `CANAL_BOT_ID` | `1432506760698003466` | Canal interno del bot |
-| `PORT` | `8080` | Puerto del servidor Flask (keep-alive) |
-
----
-
 ## 📁 Datos Persistentes
 
-El bot guarda todo en JSON dentro de `PyArchives/`:
+El bot guarda todo en JSON dentro de `PyArchives/` (escrituras atómicas + migración de formatos antiguos):
 
 | Archivo | Contiene |
 |---|---|
@@ -181,6 +213,65 @@ El bot guarda todo en JSON dentro de `PyArchives/`:
 | `vcban.json` | Voice ban list (auto-kick en llamada) |
 | `maintenance.json` | Estado del modo mantenimiento |
 | `backups/` | Snapshots exportados con `cx!backup` |
+
+Los ficheros corruptos no tumban el bot: se apartan como `.corrupt` y se usan valores por defecto.
+
+---
+
+## 🗂️ Estructura del Proyecto
+
+```
+PyArchives/
+├── main.py            # Punto de entrada: TetoBot + check global + carga de cogs
+├── config.py          # Re-export de core.settings (compatibilidad)
+├── core/              # Núcleo sin dependencia de Discord (testeable)
+│   ├── settings.py    # Configuración validada desde entorno
+│   ├── store.py       # JsonStore atómico con lock asyncio + migración legacy
+│   ├── parsing.py     # Duraciones, picha, ship, formatos, higiene de texto
+│   ├── fortnite_parse.py  # Parsers puros de Fortnite.GG
+│   ├── checks.py      # is_admin, bypass de cooldown, guild_only
+│   ├── embeds.py      # Constructores de embeds con estilo consistente
+│   └── http.py        # Cliente aiohttp compartido con reintentos
+├── services/
+│   └── state.py       # Blacklist, Maintenance, VoiceBan, ShipStore
+├── cogs/              # Comandos Discord (capa fina sobre core/services)
+│   ├── aura.py        # aura, top, bf + admin de aura
+│   ├── extras.py      # diversión: picha, castigo, vs, recordar, hola, de, alaba, teamo
+│   ├── admin.py       # solo dueño: decir, dm, anuncio, backup, stats, reload, logs, ...
+│   ├── utilidad.py    # ping, 8ball, avatar, userinfo, ship, hora, servidor, rol, help, ...
+│   ├── moderacion.py  # ruleta, vckick, angelguard, purge
+│   ├── apis.py        # pokemon, pais, clima, anime, perro, coctel, espacio, ...
+│   ├── fortnite.py    # fn, fn video, fn shop
+│   ├── ia.py          # chat con Groq
+│   └── errores.py     # manejador global de errores
+└── utils/             # managers legacy (aura, gifs, diccionario, logger)
+tests/                 # pytest: parsing, store, estado, aura, fortnite, settings
+```
+
+Regla de arquitectura: **la lógica testeable vive en `core/`/`services/`** (sin importar `discord`);
+los cogs son capa fina Discord → lógica → respuesta.
+
+---
+
+## 🧪 Desarrollo y Tests
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest tests/ -q   # 44 tests, sin necesidad de token ni de Discord
+python -m ruff check PyArchives/core PyArchives/services PyArchives/cogs/aura.py \
+    PyArchives/cogs/admin.py PyArchives/cogs/extras.py PyArchives/main.py tests/
+python -m py_compile PyArchives/main.py PyArchives/cogs/*.py  # humo rápido
+```
+
+---
+
+## 🔐 Notas de Seguridad
+
+- **Nunca subas tu `.env`** (está en `.gitignore`). Si un token se expone, **rotalo** en el portal de Discord/Groq.
+- Los comandos de admin fallan en silencio para no filtrar quién es admin.
+- `cx!purge all` pide confirmación y está topado a 100 mensajes por tanda.
+- Las entradas de texto están topadas (chat 500, decir/DM/anuncio 1900, búsquedas 80).
+- Los errores internos se registran en `PyArchives/logs/bot.log`, nunca se envían al canal.
 
 ---
 

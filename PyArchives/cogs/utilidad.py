@@ -2,7 +2,6 @@
 Utility commands cog for the Teto Discord bot.
 Includes ping, 8ball, avatar, userinfo, ship, uptime, hora, help, and more.
 """
-import json
 import logging
 import random
 import time
@@ -14,27 +13,9 @@ import pytz
 from discord.ext import commands
 
 from config import ADMIN_ID, SHIP_DATA_PATH
-
-log = logging.getLogger(__name__)
-
-
-def _cargar_ship_data() -> dict:
-    """Load ship compatibility data from JSON file."""
-    if not SHIP_DATA_PATH.exists():
-        return {}
-    try:
-        with open(SHIP_DATA_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except (json.JSONDecodeError, OSError):
-        return {}
-
-
-def _guardar_ship_data(data: dict) -> None:
-    """Save ship compatibility data to JSON file atomically."""
-    temp = SHIP_DATA_PATH.with_suffix(".tmp")
-    with open(temp, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-    temp.replace(SHIP_DATA_PATH)
+from core.checks import admin_bypass_cooldown, is_admin
+from core.parsing import clean_search, ship_bar
+from services.state import ShipStore
 
 
 class Utilidad(commands.Cog):
@@ -43,11 +24,11 @@ class Utilidad(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self._start_time: float = time.time()
+        self.ships = ShipStore(SHIP_DATA_PATH)
 
     async def _bypass_cooldown(self, ctx: commands.Context) -> None:
-        """Remove cooldown for the configured admin."""
-        if ctx.author.id == ADMIN_ID:
-            ctx.command.reset_cooldown(ctx)
+        """Remove cooldown for the configured admin (legacy wrapper)."""
+        await admin_bypass_cooldown(ctx)
 
     # ── Ping ──────────────────────────────────────────────────────────────────
     @commands.command(name="ping")
@@ -186,11 +167,14 @@ class Utilidad(commands.Cog):
             embed.add_field(name="🎨 Color", value=f"`#{miembro.color.value:06X}`", inline=True)
             embed.add_field(name="🔑 Permisos", value=perms_str if perms else "Ninguno", inline=False)
 
-            # Aura (from extras cog)
-            extras_cog = self.bot.get_cog("Extras")
-            if extras_cog and hasattr(extras_cog, "aura_manager"):
-                aura = await extras_cog.aura_manager.get_aura(str(miembro.id))
-                embed.add_field(name="✨ Aura", value=f"`{aura} pts`", inline=True)
+            # Aura (from Aura cog, with Extras fallback)
+            aura_cog = self.bot.get_cog("Aura") or self.bot.get_cog("Extras")
+            if aura_cog is not None and hasattr(aura_cog, "aura_manager"):
+                try:
+                    aura = await aura_cog.aura_manager.get_aura(str(miembro.id))
+                    embed.add_field(name="✨ Aura", value=f"`{aura} pts`", inline=True)
+                except Exception:
+                    pass
 
             embed.set_footer(text="⚠️ Información solo visible para el admin", icon_url=ctx.author.display_avatar.url)
         else:
@@ -229,21 +213,8 @@ class Utilidad(commands.Cog):
         if usuario2 == usuario1:
             usuario2 = ctx.author
 
-        # Build a consistent key from sorted IDs so (A,B) == (B,A)
-        id_a, id_b = sorted((usuario1.id, usuario2.id))
-        key = f"{id_a}-{id_b}"
-
-        # Load existing data
-        data = _cargar_ship_data()
-
-        if key in data:
-            porcentaje = data[key]
-        else:
-            porcentaje = random.randint(0, 100)
-            data[key] = porcentaje
-            _guardar_ship_data(data)
-
-        barra = "❤️" * (porcentaje // 10) + "🖤" * (10 - porcentaje // 10)
+        _, porcentaje, _ = await self.ships.percent_for(usuario1.id, usuario2.id)
+        barra = ship_bar(porcentaje)
 
         embed = discord.Embed(
             title="💘 Calculadora de Amor",
@@ -288,7 +259,8 @@ class Utilidad(commands.Cog):
         """📖 Look up a word's definition. Tries Spanish first, falls back to English."""
         from utils.dictionary import lookup_word
 
-        if not palabra or not palabra.strip():
+        palabra = clean_search(palabra, max_len=50)
+        if not palabra:
             await ctx.send(
                 "❌ Uso: `cx!definir <palabra>` (ej: `cx!definir casa`)"
             )
@@ -320,13 +292,11 @@ class Utilidad(commands.Cog):
         )
         await ctx.send(embed=embed)
 
-    # ── Mute All (admin only) ────────────────────────────────────────────────
     @commands.command(name="muteall")
+    @is_admin()
     async def mute_all(self, ctx: commands.Context) -> None:
         """[Admin] Mute everyone in your voice channel."""
-        if ctx.author.id != ADMIN_ID:
-            return
-        if not ctx.author.voice:
+        if ctx.guild is None or not ctx.author.voice or not ctx.author.voice.channel:
             await ctx.send("❌ Entra en un canal de voz primero.")
             return
         count = 0
@@ -342,11 +312,10 @@ class Utilidad(commands.Cog):
 
     # ── Unmute All (admin only) ──────────────────────────────────────────────
     @commands.command(name="unmuteall")
+    @is_admin()
     async def unmute_all(self, ctx: commands.Context) -> None:
         """[Admin] Unmute everyone in your voice channel."""
-        if ctx.author.id != ADMIN_ID:
-            return
-        if not ctx.author.voice:
+        if ctx.guild is None or not ctx.author.voice or not ctx.author.voice.channel:
             await ctx.send("❌ Entra en un canal de voz primero.")
             return
         count = 0
@@ -362,10 +331,9 @@ class Utilidad(commands.Cog):
 
     # ── Slowmode (admin only) ──────────────────────────────────────────────
     @commands.command(name="slowmode", aliases=["sm"])
+    @is_admin()
     async def slowmode(self, ctx: commands.Context, canal: Optional[discord.TextChannel] = None, segundos: Optional[int] = None) -> None:
         """[Admin] Establece el slowmode de un canal de texto."""
-        if ctx.author.id != ADMIN_ID:
-            return
         if canal is None or segundos is None:
             await ctx.send("❌ Usa: `cx!slowmode #canal 10` (o `0` para desactivar)")
             return

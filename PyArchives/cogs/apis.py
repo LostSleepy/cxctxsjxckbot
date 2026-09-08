@@ -121,8 +121,8 @@ class Apis(commands.Cog):
             return None
 
     def _sanitize(self, text: str) -> str:
-        """Sanitize input: strip, lowercase, remove special chars."""
-        return re.sub(r"[^a-záéíóúñü\s-]", "", text.strip().lower()).strip()
+        """Sanitize input: strip, lowercase, remove special chars (max 80)."""
+        return re.sub(r"[^a-záéíóúñü\s-]", "", text.strip().lower()).strip()[:80]
 
     # ═══════════════════════════════════════════════════════════════════════════
     # POKEMON

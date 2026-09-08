@@ -10,10 +10,10 @@ Fuentes (todas públicas y verificadas):
   • fortnite-api.com/v2/shop        → tienda diaria (en español con language=es)
 
 Vídeo del baile: el CDN de fngg (fnggcdn.com) no lo reproduce el reproductor
-inline de Discord. Si FNGG_VIDEO_PROXY_URL está configurada (Cloudflare
-Worker gratuito, ver cloudflare-worker/), el bot envía el enlace del Worker,
-que re-sirve el mp4 con headers correctos → Discord lo reproduce. El bot
-NUNCA descarga el vídeo (cero tráfico en el host).
+inline de Discord (bug conocido de Discord+Cloudflare). La vía fiable sin
+descargas: el campo showcaseVideo de fortnite-api (vídeo de YouTube), que
+Discord reproduce inline nativamente. Si no hay showcaseVideo, se envía el
+enlace directo de fngg como fallback.
 """
 import asyncio
 import logging
@@ -26,8 +26,6 @@ import aiohttp
 import discord
 from discord.ext import commands
 
-from config import FNGG_VIDEO_PROXY_URL
-
 log = logging.getLogger(__name__)
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
@@ -36,16 +34,18 @@ FORTNITE_API_SHOP = "https://fortnite-api.com/v2/shop"
 FNGG_ITEMS_JSON = "https://fortnite.gg/api/items.json"
 FNGG_ITEM_DETAILS = "https://fortnite.gg/item-details"
 FNGG_IMG = "https://fortnite.gg/img/items/{}/icon.jpg"
-FNGG_VIDEO = "https://fnggcdn.com/items/{}/video.mp4"
 
-# El Worker proxy re-sirve los vídeos desde el dominio propio de Cloudflare
-# para que Discord los reproduzca inline (el CDN de fngg se queda congelado).
-def _video_url(fngg_id: str) -> str:
-    """URL del vídeo: vía Cloudflare Worker si está configurado, si no directa."""
-    if FNGG_VIDEO_PROXY_URL:
-        base = FNGG_VIDEO_PROXY_URL.rstrip("/")
-        return f"{base}/items/{fngg_id}/video.mp4"
-    return FNGG_VIDEO.format(fngg_id)
+from core.fortnite_parse import (
+    RARITY_ES,
+    SOURCE_ES,
+    TYPE_ES,
+    fmt_added as _fmt_added,
+    fmt_num as _fmt_num,
+    parse_item_details as _parse_item_details,
+    video_url as _video_url,
+    youtube_url as _youtube_url,
+)
+from core.fortnite_parse import FNGG_VIDEO
 
 BROWSER_HEADERS = {
     "User-Agent": (
@@ -62,114 +62,6 @@ RETRY_DELAY: float = 0.8
 BRAND_COLOR = discord.Color.from_rgb(255, 105, 180)
 
 
-# ── Parsing helpers ─────────────────────────────────────────────────────────
-def _parse_item_details(html: str) -> dict:
-    """Parse the HTML fragment returned by fortnite.gg/item-details?id=."""
-    data: dict = {}
-
-    def grab(pattern: str) -> Optional[str]:
-        m = re.search(pattern, html)
-        return m.group(1).strip() if m else None
-
-    data["name"] = grab(r"fn-detail-name'>([^<]+)</div>")
-    data["rarity"] = grab(r"fn-detail-type'><span[^>]*>([^<]+)</span>")
-    data["type"] = grab(r"fn-detail-type'><span[^>]*>[^<]+</span>\s*([^<]+)</div>")
-    data["price"] = grab(r"fn-item-price'>([^<]*)</div>")
-    data["description"] = grab(r"fn-detail-desc[^>]*>([^<]+)</div>")
-    data["source"] = grab(r">Source:</th><td>(?:<a[^>]*>)?([^<]+)")
-    data["introduced"] = grab(r">Introduced in:</th><td>(?:<a[^>]*>)?([^<]+)")
-    data["release"] = grab(r">Release date:</th><td>([^<]+)</td>")
-    data["collab"] = grab(r">Collab:</th><td>(?:<a[^>]*>)?([^<]+)")
-
-    m = re.search(r"data-type='wishlist'[^>]*>.*?data-n='(\d+)'", html, re.S)
-    data["wishlists"] = int(m.group(1)) if m else None
-
-    m = re.search(r"data-total='(\d+)' data-sum='(\d+)'", html)
-    if m:
-        total, ssum = int(m.group(1)), int(m.group(2))
-        data["votes"] = total
-        data["rating"] = round(ssum / (total * 4) * 100) if total else None
-    else:
-        data["votes"] = None
-        data["rating"] = None
-
-    m = re.search(r"src='(https://fnggcdn\.com/items/\d+/video\.mp4[^']*)'", html)
-    data["video"] = m.group(1) if m else None
-
-    return data
-
-
-def _fmt_num(n: Optional[int]) -> str:
-    """Formato español de miles: 42515 → '42.515'."""
-    if n is None:
-        return "—"
-    return f"{n:,}".replace(",", ".")
-
-
-def _fmt_added(added: Optional[str]) -> Optional[str]:
-    """Convierte '2019-11-20T12:49:44Z' → '20/11/2019'."""
-    if not added:
-        return None
-    m = re.match(r"(\d{4})-(\d{2})-(\d{2})", added)
-    if not m:
-        return None
-    return f"{m.group(3)}/{m.group(2)}/{m.group(1)}"
-
-
-# ── Traducciones ES (valores que fngg devuelve en inglés) ───────────────────
-SOURCE_ES = {
-    "Shop": "Tienda",
-    "Battle Pass": "Pase de batalla",
-    "Crew": "Tripulación",
-    "Challenges": "Desafíos",
-    "Exclusives": "Exclusivo",
-    "Packs": "Paquetes",
-    "OG Pass": "Pase OG",
-    "Music Pass": "Pase de Música",
-    "Lego Pass": "Pase Lego",
-    "Tournaments": "Torneos",
-}
-
-RARITY_ES = {
-    "Common": "Común",
-    "Uncommon": "Poco común",
-    "Rare": "Raro",
-    "Epic": "Épico",
-    "Legendary": "Legendario",
-    "Icon Series": "Serie Icono",
-    "Marvel Series": "Serie Marvel",
-    "DC Series": "Serie DC",
-    "Star Wars Series": "Serie Star Wars",
-    "Gaming Legends Series": "Serie Leyendas de Gaming",
-    "Crew Pack": "Pack de Tripulación",
-}
-
-TYPE_ES = {
-    "Outfit": "Traje",
-    "Emote": "Emote",
-    "Pickaxe": "Pico",
-    "Backpack": "Mochila",
-    "Glider": "Planeador",
-    "Wrap": "Envoltura",
-    "Contrail": "Estela",
-    "Spray": "Spray",
-    "Emoji": "Emoji",
-    "Loading Screen": "Pantalla de carga",
-    "Music": "Música",
-    "Bundle": "Pack",
-    "Car": "Coche",
-    "Decal": "Diseño",
-    "Wheels": "Ruedas",
-    "Kicks": "Zapatillas",
-    "Jam Track": "Tema musical",
-    "Instrument": "Instrumento",
-    "Banner": "Estandarte",
-    "Toy": "Juguete",
-    "Trail": "Estela",
-    "Boost": "Impulso",
-    "Aura": "Aura",
-    "Sidekick": "Acompañante",
-}
 
 
 # ── Cog ──────────────────────────────────────────────────────────────────────
@@ -378,13 +270,13 @@ class Fortnite(commands.Cog):
                 )
 
             # Enlace al vídeo del baile (se reproduce con cx!fn video).
-            # Solo se construye la URL a mano si falló la ficha (no si el ítem no tiene vídeo).
+            # YouTube (showcaseVideo) se reproduce inline en Discord; fngg como fallback.
+            yt_url = _youtube_url(cosmetic)
             video = details.get("video")
             if not video and details_failed and fngg_id:
                 video = FNGG_VIDEO.format(fngg_id)
-            if video:
-                # A través del Worker proxy si está configurado → Discord lo reproduce inline.
-                video_url = _video_url(fngg_id)
+            if yt_url or video:
+                video_url = yt_url or _video_url(fngg_id)
                 # Etiqueta según la categoría del cosmético: "Baile" para emotes,
                 # la categoría localizada para el resto, y "Video" como universal.
                 if ctype and ctype != "?":
@@ -427,7 +319,7 @@ class Fortnite(commands.Cog):
 
     @fn.command(name="video", aliases=["v"])
     async def fn_video(self, ctx: commands.Context, *, query: str) -> None:
-        """🎬 Vídeo del baile: enlace vía Cloudflare Worker (0 descargas en el host)."""
+        """🎬 Vídeo del baile: YouTube inline si existe, si no enlace de fngg."""
         async with ctx.typing():
             cosmetic, _lang = await self._search_cosmetic(query)
             if not cosmetic:
@@ -438,30 +330,30 @@ class Fortnite(commands.Cog):
                 )
                 return
 
+            name = cosmetic.get("name") or query
+
+            # YouTube showcase → Discord lo reproduce inline nativamente (0 descargas).
+            yt_url = _youtube_url(cosmetic)
+            if yt_url:
+                await ctx.send(yt_url)
+                return
+
+            # Fallback: enlace directo del CDN de fngg (puede verse congelado en
+            # Discord, pero funciona al abrirlo en el navegador).
             fngg_id = await self._get_fngg_id(cosmetic.get("id", ""))
-            if not fngg_id:
-                await ctx.send(
-                    embed=self._error_embed(
-                        "❌ Sin vídeo",
-                        f"**{cosmetic.get('name', query)}** no tiene vídeo disponible.",
-                    )
-                )
-                return
+            if fngg_id:
+                details = await self._get_item_details(int(fngg_id))
+                has_video = details is None or bool(details.get("video"))
+                if has_video:
+                    await ctx.send(_video_url(fngg_id))
+                    return
 
-            # Comprobar si el ítem tiene vídeo (salvo que fngg esté caído → asumir que sí).
-            details = await self._get_item_details(int(fngg_id))
-            if details is not None and not details.get("video"):
-                await ctx.send(
-                    embed=self._error_embed(
-                        "❌ Sin vídeo",
-                        f"**{cosmetic.get('name', query)}** no tiene vídeo disponible.",
-                    )
+            await ctx.send(
+                embed=self._error_embed(
+                    "❌ Sin vídeo",
+                    f"**{name}** no tiene vídeo disponible.",
                 )
-                return
-
-            # El Worker proxy trafica con fnggcdn; el bot solo envía el enlace.
-            # Si FNGG_VIDEO_PROXY_URL está vacío, cae al enlace directo de fnggcdn.
-            await ctx.send(_video_url(fngg_id))
+            )
 
     @fn.command(name="shop", aliases=["tienda"])
     async def fn_shop(self, ctx: commands.Context) -> None:

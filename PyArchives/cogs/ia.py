@@ -2,7 +2,6 @@
 AI cog for the Teto Discord bot.
 Only the chat command remains — all other AI commands have been removed.
 """
-import asyncio
 import logging
 from typing import Optional
 
@@ -37,11 +36,16 @@ class IA(commands.Cog):
 
     def _check_cooldown(self, user_id: int) -> bool:
         """Check if the user is on cooldown. Returns True if on cooldown."""
-        now = asyncio.get_event_loop().time()
+        import time as _time
+        now = _time.monotonic()
         last = self._cooldowns.get(user_id, 0)
         if now - last < COOLDOWN_SECONDS:
             return True
         self._cooldowns[user_id] = now
+        # Bound memory: drop entries when the map grows too large.
+        if len(self._cooldowns) > 5000:
+            cutoff = now - COOLDOWN_SECONDS
+            self._cooldowns = {u: t for u, t in self._cooldowns.items() if t > cutoff}
         return False
 
     async def _generate_response(self, system_prompt: str, user_content: str) -> Optional[str]:
@@ -92,7 +96,13 @@ class IA(commands.Cog):
             await ctx.send(embed=embed)
             return
 
-        response_text = await self._generate_response(system_prompt, user_input)
+        user_input = user_input.strip()[:500]
+        if not user_input:
+            await ctx.send("❌ Escribe algo para hablar con Teto. Ej: `cx!chat hola`")
+            return
+
+        async with ctx.typing():
+            response_text = await self._generate_response(system_prompt, user_input)
 
         if not response_text:
             embed = discord.Embed(

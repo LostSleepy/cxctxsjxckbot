@@ -3,6 +3,7 @@ Moderation commands cog for the Teto Discord bot.
 Includes voice roulette, AngelGuard timeout remover, message purge,
 and the voice softban toggle system.
 """
+import asyncio
 import json
 import logging
 import random
@@ -44,20 +45,21 @@ class Moderacion(commands.Cog):
 
     # ── Admin Cooldown Bypass ────────────────────────────────────────────────
     async def _bypass_cooldown(self, ctx: commands.Context) -> None:
-        """Remove cooldown for the configured admin."""
-        if ctx.author.id == ADMIN_ID:
-            ctx.command.reset_cooldown(ctx)
+        """Remove cooldown for the configured admin (shared helper)."""
+        from core.checks import admin_bypass_cooldown as _bypass
+        await _bypass(ctx)
 
     # ── Russian Roulette (voice kick) ────────────────────────────────────────
     @commands.command(name="ruleta", aliases=["ruleta_rusa"])
     @commands.cooldown(1, 3600, commands.BucketType.user)
+    @commands.bot_has_permissions(move_members=True)
     async def ruleta_rusa(self, ctx: commands.Context) -> None:
-        """Randomly kick a member from your voice channel."""
+        """Expulsa a un miembro aleatorio de tu canal de voz."""
         await self._bypass_cooldown(ctx)
         log.debug("Ruleta ejecutado por %s", ctx.author.name)
 
-        if not ctx.author.voice:
-            await ctx.send("❌ Error: No detecto que estés en un canal de voz.")
+        if ctx.guild is None or not ctx.author.voice or not ctx.author.voice.channel:
+            await ctx.send("❌ Entra en un canal de voz primero.")
             return
 
         canal = ctx.author.voice.channel
@@ -92,9 +94,9 @@ class Moderacion(commands.Cog):
                 "❌ No tengo permisos (Mover Miembros) para desconectar "
                 "a esa persona."
             )
-        except discord.DiscordException as e:
-            await ctx.send(f"⚠️ Error inesperado: {e}")
-            log.error("Error en ruleta: %s", e, exc_info=True)
+        except discord.DiscordException:
+            await ctx.send("⚠️ No se pudo expulsar a esa persona.")
+            log.error("Error en ruleta", exc_info=True)
 
     # ── Voice SoftBan (admin only) ─────────────────────────────────────────
     @commands.command(name="vckick", aliases=["vcsoftban"])
@@ -107,7 +109,12 @@ class Moderacion(commands.Cog):
         Uso: `cx!vckick`         — muestra la lista
              `cx!vckick @usuario` — añade/remueve
         """
-        if ctx.author.id != ADMIN_ID:
+        from core.settings import ADMIN_ID as _ADMIN
+        try:
+            is_owner = await ctx.bot.is_owner(ctx.author)
+        except Exception:
+            is_owner = False
+        if ctx.author.id != _ADMIN and not is_owner:
             return
 
         # ── Show list (no args) ──────────────────────────────────────────
@@ -143,7 +150,7 @@ class Moderacion(commands.Cog):
             self._vcban.discard(uid)
             self._save_vcban()
             # Also kick them right now if they're in voice
-            if usuario.voice:
+            if usuario.voice and usuario.voice.channel is not None:
                 try:
                     canal = usuario.voice.channel
                     await usuario.move_to(None)
@@ -152,7 +159,7 @@ class Moderacion(commands.Cog):
                         f"y expulsado de **{canal.name}**."
                     )
                 except discord.DiscordException:
-                    pass
+                    await ctx.send(f"✅ {usuario.mention} removido de la voice ban list.")
             else:
                 await ctx.send(
                     f"✅ {usuario.mention} removido de la voice ban list."
@@ -225,8 +232,10 @@ class Moderacion(commands.Cog):
     # ── AngelGuard (remove all timeouts) ─────────────────────────────────────
     @commands.command(name="angelguard")
     @commands.has_permissions(moderate_members=True)
+    @commands.bot_has_permissions(moderate_members=True)
+    @commands.guild_only()
     async def angelguard(self, ctx: commands.Context) -> None:
-        """Remove all active timeouts on the server."""
+        """Quita todos los timeouts activos del servidor."""
         count = 0
         status_msg = await ctx.send(
             "😇 **Buscando almas silenciadas para liberar...**"
@@ -261,25 +270,52 @@ class Moderacion(commands.Cog):
     # ── Message Purge ────────────────────────────────────────────────────────
     @commands.command(name="purge")
     @commands.has_permissions(manage_messages=True)
-    async def purge(self, ctx: commands.Context, amount: str) -> None:
-        """Bulk-delete messages. Usage: cx!purge [N | all]"""
-        try:
-            if amount.lower() == "all":
-                deleted = await ctx.channel.purge()
+    @commands.bot_has_permissions(manage_messages=True, read_message_history=True)
+    @commands.guild_only()
+    async def purge(self, ctx: commands.Context, amount: str | None = None) -> None:
+        """Borra mensajes. Uso: `cx!purge N` (1-100) o `cx!purge all` (pide confirmación)."""
+        from config import MAX_PURGE_AMOUNT
+        if amount is None:
+            await ctx.send('❌ Indica un número (1-100) o `"all"`. Ej: `cx!purge 10`', delete_after=8)
+            return
+        if amount.lower() == "all":
+            await ctx.send(
+                f"⚠️ Vas a borrar **todos** los mensajes accesibles del canal (máx {MAX_PURGE_AMOUNT} por tanda). "
+                "Escribe `confirmar` en 30s para continuar.",
+                delete_after=30,
+            )
+
+            def _check(m: discord.Message) -> bool:
+                return m.author == ctx.author and m.channel == ctx.channel and m.content.lower().strip() == "confirmar"
+
+            try:
+                await self.bot.wait_for("message", check=_check, timeout=30)
+            except asyncio.TimeoutError:
+                await ctx.send("❌ Purge cancelado (sin confirmación).", delete_after=8)
+                return
+            try:
+                deleted = await ctx.channel.purge(limit=MAX_PURGE_AMOUNT)
                 count = len(deleted)
-            else:
+            except discord.DiscordException:
+                await ctx.send("❌ No pude borrar los mensajes.", delete_after=8)
+                return
+        else:
+            try:
                 num = int(amount)
+            except ValueError:
+                await ctx.send('❌ Indica un número (1-100) o `"all"`.', delete_after=8)
+                return
+            if not 1 <= num <= MAX_PURGE_AMOUNT:
+                await ctx.send(f"❌ El número debe estar entre 1 y {MAX_PURGE_AMOUNT}.", delete_after=8)
+                return
+            try:
                 # +1 to also delete the command message
                 deleted = await ctx.channel.purge(limit=num + 1)
                 # exclude command message; clamp to 0 in case nothing was deleted
                 count = max(0, len(deleted) - 1)
-        except (ValueError, discord.DiscordException) as e:
-            await ctx.send(
-                '❌ Indica un número o "all".',
-                delete_after=5,
-            )
-            log.warning("Error en purge: %s", e)
-            return
+            except discord.DiscordException:
+                await ctx.send("❌ No pude borrar los mensajes.", delete_after=8)
+                return
 
         await ctx.send(
             f"✅ Se han borrado {count} mensajes.",
