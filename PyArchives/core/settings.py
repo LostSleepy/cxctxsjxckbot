@@ -89,7 +89,7 @@ BACKUP_DIR: Path = BASE_DIR / "backups"
 
 # --- AI ---
 GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL: str = _get_str("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL: str = _get_str("GROQ_MODEL", "openai/gpt-oss-120b")
 GROQ_MAX_TOKENS: int = _get_int("GROQ_MAX_TOKENS", 200, minimum=16, maximum=1024)
 
 # --- Web keep-alive ---

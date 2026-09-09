@@ -60,7 +60,7 @@ it falls back to the default and logs a warning.
 | `ADMIN_ID` | `979869404110159912` | Creator ID: bypasses cooldowns, blacklist and maintenance |
 | `CANAL_ANUNCIOS_ID` | `1497645495051354113` | Announcements channel (`0` = disabled) |
 | `CANAL_BOT_ID` | `1432506760698003466` | Internal channel (informational) |
-| `GROQ_MODEL` | `llama-3.3-70b-versatile` | Groq model |
+| `GROQ_MODEL` | `openai/gpt-oss-120b` | Groq model |
 | `GROQ_MAX_TOKENS` | `200` | Max tokens per reply (16–1024) |
 | `ENABLE_WEB` | `1` | Keep-alive server for free hosting (`0` = off) |
 | `PORT` | `8080` | Web server port |

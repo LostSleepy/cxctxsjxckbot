@@ -60,7 +60,7 @@ usa el valor por defecto y lo avisa en el log.
 | `ADMIN_ID` | `979869404110159912` | ID del creador: bypass de cooldowns, blacklist y mantenimiento |
 | `CANAL_ANUNCIOS_ID` | `1497645495051354113` | Canal de anuncios y récords de Black Flash (`0` = desactivado) |
 | `CANAL_BOT_ID` | `1432506760698003466` | Canal interno (informativo) |
-| `GROQ_MODEL` | `llama-3.3-70b-versatile` | Modelo de Groq |
+| `GROQ_MODEL` | `openai/gpt-oss-120b` | Modelo de Groq |
 | `GROQ_MAX_TOKENS` | `200` | Máx. tokens por respuesta (16–1024) |
 | `ENABLE_WEB` | `1` | Servidor keep-alive para hosting gratuito (`0` = desactivado) |
 | `PORT` | `8080` | Puerto del servidor web |
